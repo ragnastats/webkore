@@ -1,0 +1,12 @@
+{
+  "name": "webkore-server",
+  "version": "0.0.1",
+  "author": "Rachel <rachel@ragnastats.com>",
+  "description": "A simple server to collect information from OpenKore and display it",
+  "dependencies" : {
+    "jquery": "*",
+    "express": "*",
+    "socket.io": "*"
+  },
+  "license": "MIT"
+}
