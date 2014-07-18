@@ -1,0 +1,52 @@
+<html>
+    <head>
+        <title>WebKore - OpenKore on the web!</title>
+        
+        <link rel="stylesheet" type="text/css" href="bootstrap/css/jquery.jscrollpane.css" />
+        <link rel="stylesheet" type="text/css" href="bootstrap/css/ragnarok-bootstrap.css" />
+        <link rel="stylesheet" type="text/css" href="bootstrap/css/ragnarok-misc.css" />
+        <script src="bootstrap/js/3rdparty/modernizr.js"></script>
+
+        <style>
+            body {
+                background-image:url(img/demo-bg.png);
+                overflow: hidden;
+            }
+
+            .cover {
+                background-color:hsla(225, 60%, 40%, 0.7);
+                position: absolute;
+                top: 0; left: 0; bottom: 0; right: 0;
+            }
+        </style>
+    </head>
+
+    <body class="ragnarok">
+        <div class="cover"></div>
+
+        <script src='bootstrap/js/3rdparty/jquery.min.js'></script>
+        <script src='bootstrap/js/3rdparty/hogan-3.0.2.min.js'></script>
+        <script src='bootstrap/js/3rdparty/plugins.js'></script>
+        <script src='bootstrap/js/ragnarok-plugins.js'></script>
+        <script src='bootstrap/js/ragnarok-bootstrap.js'></script>
+        <script src='bootstrap/js/ragnarok-minimap.js'></script>
+        <script src='bootstrap/js/ragnarok-window.js'></script>
+        <script src='bootstrap/js/ragnarok-ui.js'></script>
+        <script src='bootstrap/js/ragnarok-fun.js'></script>
+        
+        <script>
+            $(document).ready(function()
+            {
+                ragnarok.window.template_path = '/bootstrap/templates/';
+                
+                ragnarok.window.load('basic-info');
+                ragnarok.window.load('minimap');
+                
+                ragnarok.window.ready(function()
+                {
+                    $(document).trigger('initialize');
+                });
+            });
+        </script>
+    </body>
+</html>

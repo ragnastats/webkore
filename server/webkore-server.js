@@ -12,5 +12,5 @@ app.use(express.static(__dirname + '/static'));
 app.get('/', function (req, res)
 {
     console.log("Page requested.");
-    res.end("Hello there!");
+    res.sendfile(__dirname + '/index.html');
 });
