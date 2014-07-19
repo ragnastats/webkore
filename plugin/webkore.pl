@@ -37,12 +37,33 @@ sub unload
 
 sub character_export
 {
+	my $export = {"inventory" => [], "storage" => []};
+	
+	# Inventory
+	########################
+	
+	foreach my $item (@{$char->inventory->getItems()})
+	{
+		push(@{$export->{inventory}}, {item => $item->{nameID}, quantity => $item->{amount}});	
+	}
+
+	# Storage
+	########################
+	
+	for(my $i = 0; $i < @storageID; $i++)
+	{
+		next if ($storageID[$i] eq "");
+		my $item = $storage{$storageID[$i]};
+	
+		push(@{$export->{storage}}, {item => $item->{nameID}, quantity => $item->{amount}});	
+	}
+
 	# Character information
 	########################
 	
 	my $pos = calcPosition($char);
 	
-	my $character = {
+	$export->{character} = {
 		name => $char->{'name'},
 		class => $jobs_lut{$char->{'jobID'}},
 		hp => {current => $char->{'hp'}, total => $char->{'hp_max'}},
@@ -57,7 +78,7 @@ sub character_export
 		look => $char->{look}->{body}
 	};
 	
-	return $character;
+	return $export;
 }
 
 sub loop
@@ -76,7 +97,8 @@ sub loop
 		#	print $remote shift(@queue) . "\n";
 		#}
 		
-		print $remote to_json(character_export());
+		# End our data with a new line
+		print $remote to_json(character_export()) . "\n";
 		$timeout = time() + 1;
 	}
 }
