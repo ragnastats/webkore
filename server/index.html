@@ -46,6 +46,15 @@
                 {
                     $(document).trigger('initialize');
                 });
+                
+                setInterval(function()
+                {
+                    $.getJSON('/character', function(response)
+                    {
+                        ragnarok.character = response;
+                        ragnarok.ui.populate.character();
+                    });
+                }, 500);
             });
         </script>
     </body>

@@ -1,7 +1,8 @@
 var express = require('express'),
     app     = require('express')(),
     server  = require('http').createServer(app),
-    io      = require('socket.io').listen(server);
+    io      = require('socket.io').listen(server),
+    character = {};
 
 server.listen(1337);
 console.log("Web server running on port 1337");
@@ -9,12 +10,17 @@ console.log("Web server running on port 1337");
 // Create routes for static content and the index
 app.use(express.static(__dirname + '/static'));
 
-app.get('/', function (req, res)
+app.get('/', function(req, res)
 {
     console.log("Page requested.");
     res.sendfile(__dirname + '/index.html');
 });
 
+
+app.get('/character', function(req, res)
+{
+    res.end(character);
+});
 
 var net = require('net');
 
@@ -26,6 +32,8 @@ net.createServer(function(socket) {
     console.log('CONNECTED: ' + socket.remoteAddress +':'+ socket.remotePort);
     
     socket.on('data', function(data) {
+        character = data;
+        
         console.log('From ' + socket.remoteAddress + ': ' + data);
         socket.write(data);
     });
