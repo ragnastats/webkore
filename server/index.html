@@ -37,24 +37,27 @@
         <script>
             $(document).ready(function()
             {
-                ragnarok.window.template_path = '/bootstrap/templates/';
-                
-                ragnarok.window.load('basic-info');
-                ragnarok.window.load('minimap');
-                
-                ragnarok.window.ready(function()
+                // Load item data
+                ragnarok.api.populate(['items'], 'http://api.ragnastats.com/items.json', function()
                 {
-                    $(document).trigger('initialize');
-                });
-                
-                setInterval(function()
-                {
-                    $.getJSON('/character', function(response)
+                    ragnarok.ui.root_path = '/bootstrap/';
+                    ragnarok.window.template_path = '/bootstrap/templates/';
+                    
+                    ragnarok.window.load('basic-info');
+                    ragnarok.window.load('minimap');
+                    ragnarok.window.load('inventory');
+                    ragnarok.window.load('item-info');
+                    
+                    ragnarok.window.ready(function()
                     {
-                        ragnarok.character = response;
-                        ragnarok.ui.populate.character();
+                        $(document).trigger('initialize');
                     });
-                }, 500);
+                    
+                    setInterval(function()
+                    {
+                        ragnarok.ui.load('/character');
+                    }, 1000);
+                });
             });
         </script>
     </body>

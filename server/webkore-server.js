@@ -2,7 +2,9 @@ var express = require('express'),
     app     = require('express')(),
     server  = require('http').createServer(app),
     io      = require('socket.io').listen(server),
-    character = {};
+    character = '',
+    buffer = '',
+    complete = false;
 
 server.listen(1337);
 console.log("Web server running on port 1337");
@@ -32,7 +34,23 @@ net.createServer(function(socket) {
     console.log('CONNECTED: ' + socket.remoteAddress +':'+ socket.remotePort);
     
     socket.on('data', function(data) {
-        character = data;
+        var chunk = data.toString();
+
+        // We use newlines to deliminate the end of our data
+        if(chunk.indexOf("\n") == -1)
+            complete = false;
+        else
+            complete = true;
+        
+        // Always add the current chunk to our buffer
+        buffer += chunk;
+        
+        if(complete)
+        {
+            // Set our character data to the current buffer and clear it out!
+            character = buffer;
+            buffer = '';
+        }
         
         console.log('From ' + socket.remoteAddress + ': ' + data);
         socket.write(data);
