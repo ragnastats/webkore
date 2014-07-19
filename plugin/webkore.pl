@@ -7,17 +7,21 @@ use Time::HiRes;
 use List::Util;
 use IO::Socket;
 use Storable;
+use JSON;
 
 # Kore includes
 use Settings;
 use Plugins;
 use Network;
 use Globals;
+use Utils;
  
 our @queue;
+our $timeout;
 our $remote ||= IO::Socket::INET->new(Proto => 'tcp', PeerAddr => '192.168.1.234', PeerPort => 1338, Reuse => 1);
- 
+
 Commands::register(["remote", "To a land far far away", \&remote]);
+Commands::register(["reconnect", "Reconnect to WebKore", \&reconnect]);
 Plugins::register("WebKore", "OpenKore's Web Interface", \&unload);
 my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
 								['packet/public_chat', \&chatHandler],
@@ -30,10 +34,35 @@ sub unload
 {
 	Plugins::delHooks($hooks);
 }
- 
+
+sub character_export
+{
+	# Character information
+	########################
+	
+	my $pos = calcPosition($char);
+	
+	my $character = {
+		name => $char->{'name'},
+		class => $jobs_lut{$char->{'jobID'}},
+		hp => {current => $char->{'hp'}, total => $char->{'hp_max'}},
+		sp => {current => $char->{'sp'}, total => $char->{'sp_max'}},
+		level => {base => $char->{'lv'}, job => $char->{'lv_job'}},
+		exp => {base => {current => $char->{'exp'}, total => $char->{'exp_max'}},
+				job => {current => $char->{'exp_job'}, total => $char->{'exp_job_max'}}},
+		weight => {current => $char->{'weight'}, total => $char->{'weight_max'}},
+		zeny => $char->{'zeny'},
+		map => {name => $field->{baseName}, width => $field->{width}, height => $field->{height}},
+		pos => $pos,
+		look => $char->{look}->{body}
+	};
+	
+	return $character;
+}
+
 sub loop
 {
-	if($remote)
+	if(Network::DirectConnection::getState() == Network::IN_GAME and $remote and $timeout < time())
 	{
 		# Check connection status
 		if($remote->connected())
@@ -42,24 +71,32 @@ sub loop
 		}
 
 		# Check for new messages
-		while(@queue)
-		{
-			print $remote shift(@queue);
-		}
+		#while(@queue)
+		#{
+		#	print $remote shift(@queue) . "\n";
+		#}
+		
+		print $remote to_json(character_export());
+		$timeout = time() + 1;
 	}
 }
 
 sub chatHandler
 {
     my($packet, $args) = @_;
-	push(@queue, $args->{message});
+	#push(@queue, $args->{message});
 	print(Dumper($args));
 }
 
 sub remote
 {
     my($command, $message) = @_;
-	push(@queue, $message);
+	#push(@queue, $message);
+}
+
+sub reconnect
+{
+	$remote = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => '192.168.1.234', PeerPort => 1338, Reuse => 1);
 }
 
 1;
