@@ -99,7 +99,7 @@ sub loop
 		#}
 		
 		# End our data with a new line
-		print $remote to_json(character_export()) . "\n";
+		print $remote to_json({'event' => 'character', 'data' => character_export()}) . "\n";
 		$timeout = time() + 1;
 	}
 }
@@ -107,7 +107,12 @@ sub loop
 sub chatHandler
 {
     my($packet, $args) = @_;
-	#push(@queue, $args->{message});
+	
+	if($remote and $args->{message})
+	{
+		print $remote to_json({'event' => 'chat', 'data' => {'message' => $args->{message}}}) . "\n";
+	}
+	
 	print(Dumper($args));
 }
 
