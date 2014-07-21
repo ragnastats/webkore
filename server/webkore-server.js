@@ -47,8 +47,26 @@ net.createServer(function(socket) {
         
         if(complete)
         {
-            // Set our character data to the current buffer and clear it out!
-            character = buffer;
+            // Parse our buffer to see what's inside
+            var buffered = JSON.parse(buffer);
+            
+            switch(buffered.event)
+            {
+                case "chat":
+                    // Emit chat message
+                    io.sockets.emit('chat', {color: 'white', message: buffered.data.message});                
+                    break;
+                    
+                case "character":
+                    // Save character data
+                    character = JSON.stringify(buffered.data);                
+                    break;
+                    
+                default:
+                    console.log('Unhandled event recieved: ' + buffered.event);
+                    break;
+            }
+            
             buffer = '';
         }
         

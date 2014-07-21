@@ -33,6 +33,8 @@
         <script src='bootstrap/js/ragnarok-window.js'></script>
         <script src='bootstrap/js/ragnarok-ui.js'></script>
         <script src='bootstrap/js/ragnarok-fun.js'></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/webkore-socket.js"></script>
         
         <script>
             $(document).ready(function()
@@ -44,6 +46,7 @@
                     ragnarok.window.template_path = '/bootstrap/templates/';
                     
                     ragnarok.window.load('basic-info');
+                    ragnarok.window.load('chat-bar');
                     ragnarok.window.load('minimap');
                     ragnarok.window.load('inventory');
                     ragnarok.window.load('item-info');
@@ -53,7 +56,7 @@
                         $(document).trigger('initialize');
                     });
                     
-                    setInterval(function()
+                    function update()
                     {
                         ragnarok.ui.load('/character');
                         
@@ -61,7 +64,14 @@
                             $('.ragnarok-tab-inventory.active, .ro-tab-inv.active').trigger('click');
                         else
                             $('.ragnarok-tab-inventory, .ro-tab-inv').eq(0).trigger('click');
+                    }
+                    
+                    setInterval(function()
+                    {
+                        update();
                     }, 1000);
+                    
+                    update();
                 });
             });
         </script>
