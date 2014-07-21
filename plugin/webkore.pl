@@ -15,13 +15,14 @@ use Plugins;
 use Network;
 use Globals;
 use Utils;
- 
+
+
 our @queue;
 our $timeout;
-our $remote ||= IO::Socket::INET->new(Proto => 'tcp', PeerAddr => '192.168.1.234', PeerPort => 1338, Reuse => 1);
+our $remote;
 
 Commands::register(["remote", "To a land far far away", \&remote]);
-Commands::register(["reconnect", "Reconnect to WebKore", \&reconnect]);
+Commands::register(["connect", "Connect to WebKore", \&connect]);
 Plugins::register("WebKore", "OpenKore's Web Interface", \&unload);
 my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
 								['packet/public_chat', \&chatHandler],
@@ -116,9 +117,10 @@ sub remote
 	#push(@queue, $message);
 }
 
-sub reconnect
+sub connect
 {
-	$remote = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => '192.168.1.234', PeerPort => 1338, Reuse => 1);
+	my $server = ($config{webkore_server}) ? $config{webkore_server} : '127.0.0.1';
+	$remote = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => $server, PeerPort => 1338, Reuse => 1);
 }
 
 1;
