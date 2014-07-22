@@ -61,7 +61,7 @@ net.createServer(function(socket) {
             {
                 case "chat":
                     // Emit chat message
-                    io.sockets.emit('chat', {color: 'white', message: buffered.data.message});                
+                    io.sockets.emit('chat', buffered.data);
                     break;
                     
                 case "character":

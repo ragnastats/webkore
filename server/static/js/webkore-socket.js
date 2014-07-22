@@ -1,4 +1,12 @@
 var socket;
+var chat_colors = {
+    self: 'lime',
+    public: 'white',
+    party: 'pink',
+    party_self: 'orange',
+    guild: 'lightgreen',
+    private: 'yellow'
+};
 
 $(document).ready(function()
 {
@@ -11,7 +19,13 @@ $(document).ready(function()
     {
         if(typeof ragnarok.data.chat == "undefined")
             ragnarok.data.chat = [];
-            
+    
+        chat.color = chat_colors[chat.type];
+    
+        // Override color for self party chat
+        if(chat.type == 'party' && chat.user == ragnarok.character.name)
+            chat.color = chat_colors.party_self;
+    
         ragnarok.data.chat.push(chat);
         
         if(ragnarok.data.chat.length > 100)
