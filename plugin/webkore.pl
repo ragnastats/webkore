@@ -26,11 +26,13 @@ Commands::register(["wkdebug", "Debug stuff!", \&webkore_debug]);
 
 Plugins::register("WebKore", "OpenKore's Web Interface", \&unload);
 my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
-								["packet_selfChat", \&parse_chat],
-								["packet_pubMsg", \&parse_chat],
-								["packet_partyMsg", \&parse_chat],
-								["packet_guildMsg", \&parse_chat],
-								["packet_privMsg", \&parse_chat]);
+								["packet_selfChat", \&chat_handler],
+								["packet_pubMsg", \&chat_handler],
+								["packet_partyMsg", \&chat_handler],
+								["packet_guildMsg", \&chat_handler],
+								["packet_privMsg", \&chat_handler],
+								["packet/actor_display", \&default_handler],
+								["packet/character_moves", \&movement_handler]);
 
 sub unload
 {
@@ -78,7 +80,20 @@ sub loop
 	}
 }
 
-sub parse_chat
+sub default_handler
+{
+	my($hook, $args) = @_;
+	print("Hook: $hook\n");
+}
+
+sub verbose_handler
+{
+	my($hook, $args) = @_;
+	print("Hook: $hook\n");
+	print(Dumper($args));
+}
+
+sub chat_handler
 {
 	my($hook, $args) = @_;
 	my $chat = Storable::dclone($args);
@@ -115,6 +130,22 @@ sub parse_chat
 	print(Dumper($chat));
 }
 
+sub movement_handler
+{
+	my($hook, $args) = @_;
+	
+	if($remote)
+	{
+		print $remote to_json({
+			'event' => 'move',
+			'data' => {
+				'from' => $char->{pos},
+				'to' => $char->{pos_to},
+				'speed' => $char->{walk_speed}
+			}
+		}) . "\n";
+	}
+}
 
 #
 # Helper Functions
