@@ -54,24 +54,10 @@
                     ragnarok.window.ready(function()
                     {
                         $(document).trigger('initialize');
-                    });
-                    
-                    function update()
-                    {
-                        ragnarok.ui.load('/character');
                         
-                        if($('.ragnarok-tab-inventory.active, .ro-tab-inv.active').length)
-                            $('.ragnarok-tab-inventory.active, .ro-tab-inv.active').trigger('click');
-                        else
-                            $('.ragnarok-tab-inventory, .ro-tab-inv').eq(0).trigger('click');
-                    }
-                    
-                    setInterval(function()
-                    {
-                        update();
-                    }, 1000);
-                    
-                    update();
+                        // Load character data once all our windows have loaded!
+                        ragnarok.ui.load('/character');                        
+                    });
                 });
             });
         </script>
