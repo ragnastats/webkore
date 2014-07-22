@@ -2,7 +2,7 @@ var express = require('express'),
     app     = require('express')(),
     server  = require('http').createServer(app),
     io      = require('socket.io').listen(server),
-    character = '',
+    current = {},
     buffer = '',
     complete = false;
 
@@ -21,7 +21,7 @@ app.get('/', function(req, res)
 
 app.get('/character', function(req, res)
 {
-    res.end(character);
+    res.end(JSON.stringify(current));
 });
 
 var net = require('net');
@@ -66,7 +66,12 @@ net.createServer(function(socket) {
                     
                 case "character":
                     // Save character data
-                    character = JSON.stringify(buffered.data);                
+                    current = buffered.data;
+                    break;
+                    
+                case "move":
+                    current.character.pos = buffered.data.to;
+                    io.sockets.emit('move', buffered.data);
                     break;
                     
                 default:

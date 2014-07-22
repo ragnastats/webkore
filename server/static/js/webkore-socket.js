@@ -33,4 +33,10 @@ $(document).ready(function()
         
         ragnarok.ui.populate.chat();
     });
+    
+    socket.on('move', function(move)
+    {
+        ragnarok.character.pos = move.to;
+        ragnarok.ui.populate.map();
+    });
 });
