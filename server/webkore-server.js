@@ -71,6 +71,8 @@ net.createServer(function(socket) {
                     
                 default:
                     console.log('Unhandled event recieved: ' + buffered.event);
+                    console.log(buffered);
+                    console.log("\n");
                     break;
             }
             
@@ -78,12 +80,17 @@ net.createServer(function(socket) {
         }
         
         console.log('From ' + socket.remoteAddress + ': ' + data);
-        socket.write(data);
     });
     
     socket.on('close', function(data) {
         console.log('Socket connection closed... ');
     });
+    
+    socket.on("error", function(error) {
+        console.log("Socket had an error!")
+        console.log(error)
+    });
+    
 }).listen(PORT, HOST);
 
 console.log("Statistics server running on " + PORT);
