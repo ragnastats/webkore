@@ -37,10 +37,17 @@ sub unload
 	Plugins::delHooks($hooks);
 }
 
+#
+# WebKore Functions
+#######################
+
 sub webkore_connect
 {
 	my $server = ($config{webkore_server}) ? $config{webkore_server} : '127.0.0.1';
 	$remote = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => $server, PeerPort => 1338, Reuse => 1);
+
+	# Send character export after connecting to the statistics server
+	print $remote to_json({'event' => 'character', 'data' => character_export()}) . "\n";
 }
 
 sub webkore_debug
@@ -52,6 +59,66 @@ sub webkore_debug
 		print $remote $message . "\n";
 	}
 }
+
+# 
+# Hook Handlers
+#######################
+
+sub loop
+{
+	if(Network::DirectConnection::getState() == Network::IN_GAME and $remote and $timeout < time())
+	{
+		# Check connection status
+		if($remote->connected())
+		{
+		
+		}
+		
+		$timeout = time() + 1;
+	}
+}
+
+sub parse_chat
+{
+	my($hook, $args) = @_;
+	my $chat = Storable::dclone($args);
+	
+	# selfChat returns slightly different arguments, let's fix that
+	if($hook eq 'packet_selfChat')
+	{
+		$chat->{Msg} = $chat->{msg};
+		$chat->{MsgUser} = $chat->{user};
+	}
+	
+	# A lookup table for chat types
+	my $chat_types = {
+		'packet_selfChat' => 'self',
+		'packet_pubMsg' => 'public',
+		'packet_partyMsg' => 'party',
+		'packet_guildMsg' => 'guild',
+		'packet_privMsg' => 'private'
+	};
+	
+	if($remote)
+	{
+		print $remote to_json({
+			'event' => 'chat',
+			'data' => {
+				'user' => $chat->{MsgUser},
+				'message' => $chat->{Msg},
+				'type' => $chat_types->{$hook}
+			}
+		}) . "\n";
+	}
+	
+	print("$hook\n");
+	print(Dumper($chat));
+}
+
+
+#
+# Helper Functions
+#######################
 
 sub character_export
 {
@@ -98,65 +165,5 @@ sub character_export
 	
 	return $export;
 }
-
-sub loop
-{
-	if(Network::DirectConnection::getState() == Network::IN_GAME and $remote and $timeout < time())
-	{
-		# Check connection status
-		if($remote->connected())
-		{
-		
-		}
-
-		# Check for new messages
-		#while(@queue)
-		#{
-		#	print $remote shift(@queue) . "\n";
-		#}
-		
-		# End our data with a new line
-		print $remote to_json({'event' => 'character', 'data' => character_export()}) . "\n";
-		$timeout = time() + 1;
-	}
-}
-
-sub parse_chat
-{
-	my($hook, $args) = @_;
-	my $chat = Storable::dclone($args);
-	
-	# selfChat returns slightly different arguments, let's fix that
-	if($hook eq 'packet_selfChat')
-	{
-		$chat->{Msg} = $chat->{msg};
-		$chat->{MsgUser} = $chat->{user};
-	}
-	
-	# A lookup table for chat types
-	my $chat_types = {
-		'packet_selfChat' => 'self',
-		'packet_pubMsg' => 'public',
-		'packet_partyMsg' => 'party',
-		'packet_guildMsg' => 'guild',
-		'packet_privMsg' => 'private'
-	};
-	
-	if($remote)
-	{
-		print $remote to_json({
-			'event' => 'chat',
-			'data' => {
-				'user' => $chat->{MsgUser},
-				'message' => $chat->{Msg},
-				'type' => $chat_types->{$hook}
-			}
-		}) . "\n";
-	}
-	
-	print("$hook\n");
-	print(Dumper($chat));
-}
-
 
 1;
