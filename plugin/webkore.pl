@@ -21,19 +21,36 @@ our @queue;
 our $timeout;
 our $remote;
 
-Commands::register(["remote", "To a land far far away", \&remote]);
-Commands::register(["connect", "Connect to WebKore", \&connect]);
+Commands::register(["wkconnect", "Connect to WebKore", \&webkore_connect]);
+Commands::register(["wkdebug", "Debug stuff!", \&webkore_debug]);
+
 Plugins::register("WebKore", "OpenKore's Web Interface", \&unload);
 my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
-								['packet/public_chat', \&chatHandler],
-								['packet/self_chat', \&chatHandler],
-								['packet/emoticon', \&chatHandler],
-								['packet/party_chat', \&chatHandler],
-								['packet/guild_chat', \&chatHandler]);
+								["packet_selfChat", \&parse_chat],
+								["packet_pubMsg", \&parse_chat],
+								["packet_partyMsg", \&parse_chat],
+								["packet_guildMsg", \&parse_chat],
+								["packet_privMsg", \&parse_chat]);
 
 sub unload
 {
 	Plugins::delHooks($hooks);
+}
+
+sub webkore_connect
+{
+	my $server = ($config{webkore_server}) ? $config{webkore_server} : '127.0.0.1';
+	$remote = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => $server, PeerPort => 1338, Reuse => 1);
+}
+
+sub webkore_debug
+{
+    my($command, $message) = @_;
+
+	if($remote)
+	{
+		print $remote $message . "\n";
+	}
 }
 
 sub character_export
@@ -104,28 +121,42 @@ sub loop
 	}
 }
 
-sub chatHandler
+sub parse_chat
 {
-    my($packet, $args) = @_;
+	my($hook, $args) = @_;
+	my $chat = Storable::dclone($args);
 	
-	if($remote and $args->{message})
+	# selfChat returns slightly different arguments, let's fix that
+	if($hook eq 'packet_selfChat')
 	{
-		print $remote to_json({'event' => 'chat', 'data' => {'message' => $args->{message}}}) . "\n";
+		$chat->{Msg} = $chat->{msg};
+		$chat->{MsgUser} = $chat->{user};
 	}
 	
-	print(Dumper($args));
+	# A lookup table for chat types
+	my $chat_types = {
+		'packet_selfChat' => 'self',
+		'packet_pubMsg' => 'public',
+		'packet_partyMsg' => 'party',
+		'packet_guildMsg' => 'guild',
+		'packet_privMsg' => 'private'
+	};
+	
+	if($remote)
+	{
+		print $remote to_json({
+			'event' => 'chat',
+			'data' => {
+				'user' => $chat->{MsgUser},
+				'message' => $chat->{Msg},
+				'type' => $chat_types->{$hook}
+			}
+		}) . "\n";
+	}
+	
+	print("$hook\n");
+	print(Dumper($chat));
 }
 
-sub remote
-{
-    my($command, $message) = @_;
-	#push(@queue, $message);
-}
-
-sub connect
-{
-	my $server = ($config{webkore_server}) ? $config{webkore_server} : '127.0.0.1';
-	$remote = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => $server, PeerPort => 1338, Reuse => 1);
-}
 
 1;
