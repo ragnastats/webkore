@@ -47,8 +47,15 @@ net.createServer(function(socket) {
         
         if(complete)
         {
-            // Parse our buffer to see what's inside
-            var buffered = JSON.parse(buffer);
+            try
+            {
+                // Parse our buffer to see what's inside
+                var buffered = JSON.parse(buffer);
+            }
+            catch(error)
+            {
+                var buffered = {'event': 'error', 'message': error};
+            }
             
             switch(buffered.event)
             {
