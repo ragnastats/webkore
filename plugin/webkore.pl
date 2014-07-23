@@ -108,7 +108,7 @@ sub verbose_handler
 		print("$key : \n");
 		print(Dumper($args->{$key}));
 		print("============================\n");
-	}
+	}	
 }
 
 sub chat_handler
@@ -178,6 +178,12 @@ sub item_handler
 			'packet_pre/inventory_item_removed' => 'remove',
 			'packet_pre/item_used' => 'remove'
 		};
+	
+		# If an item was used, we need to calculate the quantity used based on the amount remaining
+		if($hook eq 'packet_pre/item_used')
+		{
+			$args->{amount} = $item->{amount} - $args->{remaining};
+		}
 	
 		print $remote to_json({
 			'event' => 'item',
