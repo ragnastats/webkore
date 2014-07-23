@@ -26,13 +26,24 @@ Commands::register(["wkdebug", "Debug stuff!", \&webkore_debug]);
 
 Plugins::register("WebKore", "OpenKore's Web Interface", \&unload);
 my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
+
+								# Chats
 								["packet_selfChat", \&chat_handler],
 								["packet_pubMsg", \&chat_handler],
 								["packet_partyMsg", \&chat_handler],
 								["packet_guildMsg", \&chat_handler],
 								["packet_privMsg", \&chat_handler],
-								["packet/actor_display", \&default_handler],
-								["packet/character_moves", \&movement_handler]);
+								
+								# Movement
+								["packet/character_moves", \&movement_handler],
+								
+								# Items
+								['packet/inventory_item_added', \&item_handler],
+								['packet_pre/inventory_item_removed', \&item_handler],
+								['packet_pre/item_used', \&item_handler],
+								
+								# Misc testing
+								["packet/actor_display", \&default_handler]);
 
 sub unload
 {
@@ -90,7 +101,14 @@ sub verbose_handler
 {
 	my($hook, $args) = @_;
 	print("Hook: $hook\n");
-	print(Dumper($args));
+#	print(Dumper($args));
+
+	foreach my $key (@{$args->{KEYS}})
+	{
+		print("$key : \n");
+		print(Dumper($args->{$key}));
+		print("============================\n");
+	}
 }
 
 sub chat_handler
@@ -142,6 +160,31 @@ sub movement_handler
 				'from' => $char->{pos},
 				'to' => $char->{pos_to},
 				'speed' => $char->{walk_speed}
+			}
+		}) . "\n";
+	}
+}
+
+sub item_handler
+{
+	my($hook, $args) = @_;
+	
+	if($remote)
+	{
+		my $item = $char->inventory->getByServerIndex($args->{index});
+	
+		my $actions = {
+			'packet/inventory_item_added' => 'add',
+			'packet_pre/inventory_item_removed' => 'remove',
+			'packet_pre/item_used' => 'remove'
+		};
+	
+		print $remote to_json({
+			'event' => 'item',
+			'data' => {
+				'action' => $actions->{$hook},
+				'item_id' => $item->{nameID},
+				'quantity' => $args->{amount}
 			}
 		}) . "\n";
 	}
