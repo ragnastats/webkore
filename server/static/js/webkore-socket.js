@@ -25,6 +25,16 @@ $(document).ready(function()
         // Override color for self party chat
         if(chat.type == 'party' && chat.user == ragnarok.character.name)
             chat.color = chat_colors.party_self;
+  
+        var date = new Date(chat.timestamp);
+        var dateString = date.getUTCFullYear() +"/"+
+                          ("0" + (date.getUTCMonth()+1)).slice(-2) +"/"+
+                          ("0" + date.getUTCDate()).slice(-2) + " " +
+                          ("0" + date.getUTCHours()).slice(-2) + ":" +
+                          ("0" + date.getUTCMinutes()).slice(-2) + ":" +
+                          ("0" + date.getUTCSeconds()).slice(-2);
+                    
+        chat.timestamp = date;
     
         ragnarok.data.chat.push(chat);
         

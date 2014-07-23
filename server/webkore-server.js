@@ -60,6 +60,8 @@ net.createServer(function(socket) {
             switch(buffered.event)
             {
                 case "chat":
+                    buffered.data.timestamp = new Date();
+                
                     // Emit chat message
                     io.sockets.emit('chat', buffered.data);
                     break;
