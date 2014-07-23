@@ -1,8 +1,8 @@
-var express = require('express'),
+var ragnarok = require('../bootstrap/js/ragnarok-bootstrap.js'),
+    express = require('express'),
     app     = require('express')(),
     server  = require('http').createServer(app),
     io      = require('socket.io').listen(server),
-    current = {},
     buffer = '',
     complete = false;
 
@@ -20,8 +20,12 @@ app.get('/', function(req, res)
 
 
 app.get('/character', function(req, res)
-{
-    res.end(JSON.stringify(current));
+{    
+    res.end(JSON.stringify({
+        character: ragnarok.character,
+        storage: ragnarok.storage.items,
+        inventory: ragnarok.inventory.items
+    }));
 });
 
 var net = require('net');
@@ -68,12 +72,23 @@ net.createServer(function(socket) {
                     
                 case "character":
                     // Save character data
-                    current = buffered.data;
+                    ragnarok.character = buffered.data.character;
+                    ragnarok.storage.items = buffered.data.storage;
+                    ragnarok.inventory.items = buffered.data.inventory;
                     break;
                     
                 case "move":
-                    current.character.pos = buffered.data.to;
+                    ragnarok.character.pos = buffered.data.to;
                     io.sockets.emit('move', buffered.data);
+                    break;
+                    
+                case "item":
+                    if(buffered.data.action == 'add' || buffered.data.action == 'remove')
+                    {
+                        ragnarok.inventory[buffered.data.action](buffered.data.item_id, buffered.data.quantity);
+                    }
+
+                    io.sockets.emit('item', buffered.data);
                     break;
                     
                 default:

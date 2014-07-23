@@ -49,4 +49,20 @@ $(document).ready(function()
         ragnarok.character.pos = move.to;
         ragnarok.ui.populate.map();
     });
+    
+    socket.on('item', function(item)
+    {
+        if(item.action == 'add')
+        {
+            ragnarok.inventory.add(item.item_id, item.quantity);
+            ragnarok.ui.event.item_obtained(item.item_id, item.quantity);
+        }
+        else if(item.action == 'remove')
+        {
+            ragnarok.inventory.remove(item.item_id, item.quantity);
+        }
+        
+        ragnarok.ui.clear.inventory('.inventory .ro-items');
+        ragnarok.ui.populate.inventory('.inventory .ro-items', $('.ragnarok-tab-inventory.active, .ro-tab-inv.active').attr('tab'));
+    });
 });
