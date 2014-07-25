@@ -22,7 +22,11 @@ our $timeout;
 our $remote;
 
 Commands::register(["wkconnect", "Connect to WebKore", \&webkore_connect]);
+Commands::register(["wkc", "Connect to WebKore", \&webkore_connect]);
+Commands::register(["wkdisconnect", "Disconnect from WebKore", \&webkore_disconnect]);
+Commands::register(["wkdc", "Disconnect from WebKore", \&webkore_disconnect]);
 Commands::register(["wkdebug", "Debug stuff!", \&webkore_debug]);
+Commands::register(["wkdbg", "Debug stuff!", \&webkore_debug]);
 
 Plugins::register("WebKore", "OpenKore's Web Interface", \&unload);
 my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
@@ -69,6 +73,12 @@ sub webkore_connect
 
     # Send character export after connecting to the statistics server
     print $remote to_json({'event' => 'character', 'data' => character_export()}) . "\n";
+}
+
+sub webkore_disconnect
+{
+    shutdown($remote, 2) if $remote;
+    close($remote) if $remote;
 }
 
 sub webkore_debug
