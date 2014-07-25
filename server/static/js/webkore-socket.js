@@ -72,4 +72,10 @@ $(document).ready(function()
         ragnarok.character.pos = map.pos;
         ragnarok.ui.populate.map();
     });
+    
+    socket.on('refresh', function()
+    {
+        // Reload character data when refresh event is recieved
+        ragnarok.ui.load('/character');
+    });
 });

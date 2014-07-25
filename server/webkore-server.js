@@ -75,6 +75,7 @@ net.createServer(function(socket) {
                     ragnarok.character = buffered.data.character;
                     ragnarok.storage.items = buffered.data.storage;
                     ragnarok.inventory.items = buffered.data.inventory;
+                    io.sockets.emit('refresh');
                     break;
                     
                 case "move":
