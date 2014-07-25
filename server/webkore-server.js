@@ -91,6 +91,12 @@ net.createServer(function(socket) {
                     io.sockets.emit('item', buffered.data);
                     break;
                     
+                case "map":
+                    ragnarok.character.map = buffered.data.map;
+                    ragnarok.character.pos = buffered.data.pos;
+                    io.sockets.emit('map', buffered.data);
+                    break;
+                    
                 default:
                     console.log('Unhandled event recieved: ' + buffered.event);
                     console.log(buffered);

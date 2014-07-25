@@ -65,4 +65,11 @@ $(document).ready(function()
         ragnarok.ui.clear.inventory('.inventory .ro-items');
         ragnarok.ui.populate.inventory('.inventory .ro-items', $('.ragnarok-tab-inventory.active, .ro-tab-inv.active').attr('tab'));
     });
+    
+    socket.on('map', function(map)
+    {
+        ragnarok.character.map = map.map;
+        ragnarok.character.pos = map.pos;
+        ragnarok.ui.populate.map();
+    });
 });
