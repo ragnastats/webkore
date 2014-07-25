@@ -42,6 +42,11 @@ my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
                                 ['packet_pre/inventory_item_removed', \&item_handler],
                                 ['packet_pre/item_used', \&item_handler],
                                 
+                                # Map packets
+                                ['packet/map_loaded', \&map_handler],
+                                ['packet/map_change', \&map_handler],
+                                ['packet/map_changed', \&map_handler],
+                                
                                 # Misc testing
                                 ["packet/actor_display", \&default_handler]);
 
@@ -191,6 +196,25 @@ sub item_handler
                 'action' => $actions->{$hook},
                 'item_id' => $item->{nameID},
                 'quantity' => $args->{amount}
+            }
+        }) . "\n";
+    }
+}
+
+sub map_handler
+{
+    my($hook, $args) = @_;
+    
+    if($remote)
+    {
+        print $remote to_json({
+            'event' => 'map',
+            'data' => {
+                'map' => {
+                    'name' => $field->{baseName}, 
+                    'width' => $field->{width}, 
+                    'height' => $field->{height}
+                }
             }
         }) . "\n";
     }
