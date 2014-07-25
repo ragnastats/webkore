@@ -204,9 +204,11 @@ sub item_handler
 sub map_handler
 {
     my($hook, $args) = @_;
+    my $pos = calcPosition($char);
     
     if($remote)
     {
+        # TODO: Include map IP for added fun :)
         print $remote to_json({
             'event' => 'map',
             'data' => {
@@ -214,7 +216,9 @@ sub map_handler
                     'name' => $field->{baseName}, 
                     'width' => $field->{width}, 
                     'height' => $field->{height}
-                }
+                },
+                
+                'pos' => $pos
             }
         }) . "\n";
     }
