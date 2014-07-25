@@ -47,8 +47,11 @@ my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
                                 ['packet/map_change', \&map_handler],
                                 ['packet/map_changed', \&map_handler],
                                 
+                                # Character info
+                                ['packet/stat_info', \&info_handler],
+                                
                                 # Misc testing
-                                ["packet/actor_display", \&default_handler]);
+                                );
 
 sub unload
 {
@@ -106,14 +109,14 @@ sub verbose_handler
 {
     my($hook, $args) = @_;
     print("Hook: $hook\n");
-#	print(Dumper($args));
+#   print(Dumper($args));
 
     foreach my $key (@{$args->{KEYS}})
     {
         print("$key : \n");
         print(Dumper($args->{$key}));
         print("============================\n");
-    }	
+    }
 }
 
 sub chat_handler
@@ -219,6 +222,22 @@ sub map_handler
                 },
                 
                 'pos' => $pos
+            }
+        }) . "\n";
+    }
+}
+
+sub info_handler
+{
+    my($hook, $args) = @_;
+    
+    if($remote)
+    {
+        print $remote to_json({
+            'event' => 'info',
+            'data' => {
+                'type' => $args->{type},
+                'value' => $args->{val}
             }
         }) . "\n";
     }
