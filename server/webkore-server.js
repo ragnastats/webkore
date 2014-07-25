@@ -34,10 +34,12 @@ var HOST = '0.0.0.0';
 var PORT = 1338;
 
 // Create a server instance
-net.createServer(function(socket) {
+net.createServer(function(socket)
+{
     console.log('CONNECTED: ' + socket.remoteAddress +':'+ socket.remotePort);
     
-    socket.on('data', function(data) {
+    socket.on('data', function(data)
+    {
         var chunk = data.toString();
 
         // We use newlines to deliminate the end of our data
@@ -105,6 +107,19 @@ net.createServer(function(socket) {
                         ragnarok.character.map = buffered.data.map;
                         ragnarok.character.pos = buffered.data.pos;
                         io.sockets.emit('map', buffered.data);
+                        break;
+                        
+                    case "info":
+                        // The server starts types at 1, but arrays are... well you know.
+                        buffered.data.type--;
+                    
+                        // Only try to process recieved data if it has a handler function
+                        if(typeof ragnarok.data.info_types[buffered.data.type] != "undefined" &&
+                            typeof ragnarok.data.info_types[buffered.data.type].process == "function")
+                        {
+                            ragnarok.data.info_types[buffered.data.type].process(buffered.data.value);
+                            io.sockets.emit('info', buffered.data);
+                        }
                         break;
                         
                     default:

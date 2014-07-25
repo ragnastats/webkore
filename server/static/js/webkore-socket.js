@@ -10,9 +10,6 @@ var chat_colors = {
 
 $(document).ready(function()
 {
-    if(typeof ragnarok.data == "undefined")
-        ragnarok.data = {};
-    
     socket = io.connect(window.location.host);
     
     socket.on('chat', function(chat)
@@ -73,9 +70,20 @@ $(document).ready(function()
         ragnarok.ui.populate.map();
     });
     
+    socket.on('info', function(info)
+    {
+        // Ensure the server didn't send us something we can't handle
+        if(typeof ragnarok.data.info_types[info.type] != "undefined" &&
+            typeof ragnarok.data.info_types[info.type].process == "function")
+        {
+            ragnarok.data.info_types[info.type].process(info.value);
+            ragnarok.ui.populate.character();
+        }
+    });
+    
     socket.on('refresh', function()
     {
         // Reload character data when refresh event is recieved
         ragnarok.ui.load('/character');
-    });
+    });    
 });
