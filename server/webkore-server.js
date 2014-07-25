@@ -51,58 +51,69 @@ net.createServer(function(socket) {
         
         if(complete)
         {
-            try
-            {
-                // Parse our buffer to see what's inside
-                var buffered = JSON.parse(buffer);
-            }
-            catch(error)
-            {
-                var buffered = {'event': 'error', 'message': error};
-            }
+            var buffer_array = buffer.split("\n");
+            var length = buffer_array.length;
             
-            switch(buffered.event)
+            for($i = 0; $i < length; $i++)
             {
-                case "chat":
-                    buffered.data.timestamp = new Date();
+                // Skip empty buffers
+                if(buffer_array[$i] == '')
+                    continue;
                 
-                    // Emit chat message
-                    io.sockets.emit('chat', buffered.data);
-                    break;
+                try
+                {
+                    // Parse our buffer to see what's inside
+                    var buffered = JSON.parse(buffer_array[$i]);
+                }
+                catch(error)
+                {
+                    var buffered = {'event': 'error', 'message': error};
+                }
+                
+                switch(buffered.event)
+                {
+                    case "chat":
+                        buffered.data.timestamp = new Date();
                     
-                case "character":
-                    // Save character data
-                    ragnarok.character = buffered.data.character;
-                    ragnarok.storage.items = buffered.data.storage;
-                    ragnarok.inventory.items = buffered.data.inventory;
-                    io.sockets.emit('refresh');
-                    break;
-                    
-                case "move":
-                    ragnarok.character.pos = buffered.data.to;
-                    io.sockets.emit('move', buffered.data);
-                    break;
-                    
-                case "item":
-                    if(buffered.data.action == 'add' || buffered.data.action == 'remove')
-                    {
-                        ragnarok.inventory[buffered.data.action](buffered.data.item_id, buffered.data.quantity);
-                    }
+                        // Emit chat message
+                        io.sockets.emit('chat', buffered.data);
+                        break;
+                        
+                    case "character":
+                        // Save character data
+                        ragnarok.character = buffered.data.character;
+                        ragnarok.storage.items = buffered.data.storage;
+                        ragnarok.inventory.items = buffered.data.inventory;
+                        io.sockets.emit('refresh');
+                        break;
+                        
+                    case "move":
+                        ragnarok.character.pos = buffered.data.to;
+                        io.sockets.emit('move', buffered.data);
+                        break;
+                        
+                    case "item":
+                        if(buffered.data.action == 'add' || buffered.data.action == 'remove')
+                        {
+                            ragnarok.inventory[buffered.data.action](buffered.data.item_id, buffered.data.quantity);
+                        }
 
-                    io.sockets.emit('item', buffered.data);
-                    break;
-                    
-                case "map":
-                    ragnarok.character.map = buffered.data.map;
-                    ragnarok.character.pos = buffered.data.pos;
-                    io.sockets.emit('map', buffered.data);
-                    break;
-                    
-                default:
-                    console.log('Unhandled event recieved: ' + buffered.event);
-                    console.log(buffered);
-                    console.log("\n");
-                    break;
+                        io.sockets.emit('item', buffered.data);
+                        break;
+                        
+                    case "map":
+                        ragnarok.character.map = buffered.data.map;
+                        ragnarok.character.pos = buffered.data.pos;
+                        io.sockets.emit('map', buffered.data);
+                        break;
+                        
+                    default:
+                        console.log('Unhandled event recieved: ' + buffered.event);
+                        console.log(buffered);
+                        console.log("\n");
+                        break;
+                }
+                
             }
             
             buffer = '';
