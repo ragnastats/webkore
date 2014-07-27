@@ -37,6 +37,7 @@ my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
                                 ["packet_partyMsg", \&chat_handler],
                                 ["packet_guildMsg", \&chat_handler],
                                 ["packet_privMsg", \&chat_handler],
+                                ["packet/private_message_sent", \&chat_handler],
                                 
                                 # Movement
                                 ["packet/character_moves", \&movement_handler],
@@ -54,7 +55,38 @@ my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
                                 # Character info
                                 ['packet/stat_info', \&info_handler],
                                 
-                                # Misc testing
+                                # Guild packets
+                                ['packet/guild_name', \&default_handler],
+                                ['packet/guild_member_online_status', \&default_handler],
+                                ['packet/guild_notice', \&default_handler],
+                                ['packet/guild_member_add', \&default_handler],
+                                ['packet/guild_info', \&default_handler],
+                                ['packet/guild_member_map_change', \&default_handler],
+                                
+                                # Deal packets
+                                ['packet/deal_request', \&default_handler],
+                                ['packet/deal_begin', \&default_handler],
+                                ['packet/deal_add_other', \&default_handler],
+                                ['packet/deal_add_you', \&default_handler],
+                                ['packet/deal_finalize', \&default_handler],
+                                ['packet/deal_cancelled', \&default_handler],
+                                ['packet/deal_complete', \&default_handler],
+                                
+                                # NPC packets
+                                ['packet/npc_talk', \&default_handler],
+                                ['packet/npc_talk_continue', \&default_handler],
+                                ['packet/npc_talk_close', \&default_handler],
+                                ['packet/npc_talk_responses', \&default_handler],
+                                ['packet/npc_store_begin', \&default_handler],
+                                ['packet/npc_store_info', \&default_handler],
+                                ['packet/npc_sell_list', \&default_handler],
+                                ['packet/npc_image', \&default_handler],
+                                ['packet/npc_talk_number', \&default_handler],
+                                
+                                # Storage packets
+                                ['packet/storage_opened', \&default_handler],
+                                ['packet/storage_item_added', \&default_handler],
+                                ['packet/storage_item_removed', \&default_handler],
                                 );
 
 sub unload
@@ -150,7 +182,8 @@ sub chat_handler
         'packet_privMsg' => 'private'
     };
     
-    if($remote)
+    # Ensure chat type is supported
+    if($remote and $chat_types->{$hook})
     {
         print $remote to_json({
             'event' => 'chat',
