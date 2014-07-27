@@ -37,7 +37,7 @@ my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
                                 ["packet_partyMsg", \&chat_handler],
                                 ["packet_guildMsg", \&chat_handler],
                                 ["packet_privMsg", \&chat_handler],
-                                ["packet/private_message_sent", \&chat_handler],
+                                ["packet_pre/private_message_sent", \&chat_handler],
                                 
                                 # Movement
                                 ["packet/character_moves", \&movement_handler],
@@ -172,6 +172,36 @@ sub chat_handler
         $chat->{Msg} = $chat->{msg};
         $chat->{MsgUser} = $chat->{user};
     }
+    # We have to handle the various error messages PMs can return
+    elsif($hook eq 'packet_pre/private_message_sent')
+    {
+        if($args->{type} == 0)
+        {
+            $chat->{Msg} = $lastpm[0]{msg};
+            $chat->{MsgUser} = $lastpm[0]{user};
+        }
+        else
+        {
+            my $message;
+            
+            if ($args->{type} == 1) {
+                $message = $lastpm[0]{user} . " is not online"; } 
+            elsif ($args->{type} == 2) {
+                $message = $lastpm[0]{user} . " ignored your message"; }
+            else {
+                $message = $lastpm[0]{user} . " doesn't want to receive messages"; }
+
+            print $remote to_json({
+                'event' => 'message',
+                'data' => {
+                    'message' => $message,
+                    'type' => 'warning'
+                }
+            }) . "\n";
+
+            return;
+        }
+    }
     
     # A lookup table for chat types
     my $chat_types = {
@@ -179,18 +209,26 @@ sub chat_handler
         'packet_pubMsg' => 'public',
         'packet_partyMsg' => 'party',
         'packet_guildMsg' => 'guild',
-        'packet_privMsg' => 'private'
+        'packet_privMsg' => 'private_from',
+        'packet_pre/private_message_sent' => 'private_to'
     };
     
     # Ensure chat type is supported
     if($remote and $chat_types->{$hook})
     {
+        my $type = $chat_types->{$hook};
+        
+        if($type eq "party" and $chat->{MsgUser} eq $char->{name}) {
+            $type = "party_to"; }
+        else {
+            $type = "party_from"; }
+        
         print $remote to_json({
             'event' => 'chat',
             'data' => {
                 'user' => $chat->{MsgUser},
                 'message' => $chat->{Msg},
-                'type' => $chat_types->{$hook}
+                'type' => $type
             }
         }) . "\n";
     }
