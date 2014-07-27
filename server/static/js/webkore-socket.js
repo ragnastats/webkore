@@ -20,6 +20,11 @@ $(document).ready(function()
     
         chat.color = chat_colors[chat.type];
     
+        if(chat.type == "private_from")
+            chat.user = "( From: " + chat.user + " )";
+        else if(chat.type == "private_to")
+            chat.user = "( To: " + chat.user + " )";
+    
         var date = new Date(chat.timestamp);
         var dateString = date.getUTCFullYear() +"/"+
                           ("0" + (date.getUTCMonth()+1)).slice(-2) +"/"+
