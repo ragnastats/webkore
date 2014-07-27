@@ -220,7 +220,7 @@ sub chat_handler
         
         if($type eq "party" and $chat->{MsgUser} eq $char->{name}) {
             $type = "party_to"; }
-        else {
+        elsif($type eq "party") {
             $type = "party_from"; }
         
         print $remote to_json({

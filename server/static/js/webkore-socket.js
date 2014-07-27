@@ -2,10 +2,11 @@ var socket;
 var chat_colors = {
     self: 'lime',
     public: 'white',
-    party: 'pink',
-    party_self: 'orange',
+    party_from: 'pink',
+    party_to: 'orange',
     guild: 'lightgreen',
-    private: 'yellow'
+    private_from: 'yellow',
+    private_to: 'yellow'
 };
 
 $(document).ready(function()
@@ -19,10 +20,6 @@ $(document).ready(function()
     
         chat.color = chat_colors[chat.type];
     
-        // Override color for self party chat
-        if(chat.type == 'party' && chat.user == ragnarok.character.name)
-            chat.color = chat_colors.party_self;
-  
         var date = new Date(chat.timestamp);
         var dateString = date.getUTCFullYear() +"/"+
                           ("0" + (date.getUTCMonth()+1)).slice(-2) +"/"+
