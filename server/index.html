@@ -31,6 +31,7 @@
         <script src='bootstrap/js/ragnarok-bootstrap.js'></script>
         <script src='bootstrap/js/ragnarok-minimap.js'></script>
         <script src='bootstrap/js/ragnarok-window.js'></script>
+        <script src='bootstrap/js/ragnarok-template.js'></script>
         <script src='bootstrap/js/ragnarok-ui.js'></script>
         <script src='bootstrap/js/ragnarok-fun.js'></script>
         <script src="/socket.io/socket.io.js"></script>
@@ -43,15 +44,15 @@
                 ragnarok.api.populate(['items'], 'http://api.ragnastats.com/items.json', function()
                 {
                     ragnarok.ui.root_path = '/bootstrap/';
-                    ragnarok.window.template_path = '/bootstrap/templates/';
+                    ragnarok.template.template_path = '/bootstrap/templates/';
                     
-                    ragnarok.window.load('basic-info');
-                    ragnarok.window.load('chat-bar');
-                    ragnarok.window.load('minimap');
-                    ragnarok.window.load('inventory');
-                    ragnarok.window.load('item-info');
+                    ragnarok.template.load('basic-info');
+                    ragnarok.template.load('chat-bar');
+                    ragnarok.template.load('minimap');
+                    ragnarok.template.load('inventory');
+                    ragnarok.template.load('item-info');
                     
-                    ragnarok.window.ready(function()
+                    ragnarok.template.ready(function()
                     {
                         $(document).trigger('initialize');
                         
