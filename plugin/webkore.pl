@@ -55,6 +55,12 @@ my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
                                 # Character info
                                 ['packet/stat_info', \&info_handler],
                                 
+                                # Storage packets
+                                ['packet/storage_opened', \&storage_handler],
+                                ['packet/storage_item_added', \&storage_handler],
+                                ['packet/storage_item_removed', \&storage_handler],
+
+                                
                                 # Guild packets
                                 ['packet/guild_name', \&default_handler],
                                 ['packet/guild_member_online_status', \&default_handler],
@@ -82,11 +88,6 @@ my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
                                 ['packet/npc_sell_list', \&default_handler],
                                 ['packet/npc_image', \&default_handler],
                                 ['packet/npc_talk_number', \&default_handler],
-                                
-                                # Storage packets
-                                ['packet/storage_opened', \&default_handler],
-                                ['packet/storage_item_added', \&default_handler],
-                                ['packet/storage_item_removed', \&default_handler],
                                 );
 
 sub unload
@@ -231,10 +232,7 @@ sub chat_handler
                 'type' => $type
             }
         }) . "\n";
-    }
-    
-    print("$hook\n");
-    print(Dumper($chat));
+    }    
 }
 
 sub movement_handler
@@ -323,6 +321,35 @@ sub info_handler
         }) . "\n";
     }
 }
+
+sub storage_handler
+{
+    my($hook, $args) = @_;
+    
+    if($hook eq "packet/storage_opened")
+    {
+        print $remote to_json({
+            'event' => 'storage',
+            'data' => {
+                'status' => 'open',
+                'current' => $args->{items},
+                'total' => $args->{items_max}
+            }
+        }) . "\n";
+    }
+    
+    print("Hook: $hook\n");
+#   print(Dumper($args));
+
+    foreach my $key (@{$args->{KEYS}})
+    {
+        print("$key : \n");
+        print(Dumper($args->{$key}));
+        print("============================\n");
+    }
+}
+
+
 
 #
 # Helper Functions

@@ -122,6 +122,10 @@ net.createServer(function(socket)
                         }
                         break;
                         
+                    case "storage":
+                        io.sockets.emit('storage', buffered.data);
+                        break;
+                        
                     default:
                         console.log('Unhandled event recieved: ' + buffered.event);
                         console.log(buffered);

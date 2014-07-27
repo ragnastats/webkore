@@ -13,6 +13,12 @@ $(document).ready(function()
 {
     socket = io.connect(window.location.host);
     
+    socket.on('refresh', function()
+    {
+        // Reload character data when refresh event is recieved
+        ragnarok.ui.load('/character');
+    });
+    
     socket.on('chat', function(chat)
     {
         if(typeof ragnarok.data.chat == "undefined")
@@ -83,9 +89,18 @@ $(document).ready(function()
         }
     });
     
-    socket.on('refresh', function()
+    socket.on('storage', function(storage)
     {
-        // Reload character data when refresh event is recieved
-        ragnarok.ui.load('/character');
-    });    
+        if(storage.status == "open")
+        {
+            ragnarok.window.open('storage');
+
+            ragnarok.ui.clear.storage('.storage .ro-items');
+            ragnarok.ui.populate.storage('.storage .ro-items', $('.ragnarok-tab-storage.active, .ro-tab-stor.active').attr('tab'));
+        }
+        else
+        {
+            ragnarok.window.close('storage');
+        }
+    });
 });
