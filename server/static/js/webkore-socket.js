@@ -102,5 +102,17 @@ $(document).ready(function()
         {
             ragnarok.window.close('storage');
         }
+        
+        if(storage.action == 'add')
+        {
+            ragnarok.storage.add(storage.item_id, storage.quantity);
+        }
+        else if(storage.action == 'remove')
+        {
+            ragnarok.storage.remove(storage.item_id, storage.quantity);
+        }
+        
+        ragnarok.ui.clear.storage('.storage .ro-items');
+        ragnarok.ui.populate.storage('.storage .ro-items', $('.ragnarok-tab-storage.active, .ro-tab-stor.active').attr('tab'));
     });
 });

@@ -57,8 +57,8 @@ my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
                                 
                                 # Storage packets
                                 ['packet/storage_opened', \&storage_handler],
-                                ['packet/storage_item_added', \&storage_handler],
-                                ['packet/storage_item_removed', \&storage_handler],
+                                ['packet_pre/storage_item_added', \&storage_handler],
+                                ['packet_pre/storage_item_removed', \&storage_handler],
 
                                 
                                 # Guild packets
@@ -257,7 +257,7 @@ sub item_handler
     my($hook, $args) = @_;
 
     if($remote)
-    {    
+    {
         # Make sure we are the one using the item!
         if($hook eq 'packet_pre/item_used')
         {
@@ -331,6 +331,7 @@ sub info_handler
 sub storage_handler
 {
     my($hook, $args) = @_;
+    my($action, $item_id, $quantity);
     
     if($hook eq "packet/storage_opened")
     {
@@ -342,17 +343,33 @@ sub storage_handler
                 'total' => $args->{items_max}
             }
         }) . "\n";
+        
+        return;
     }
-    
-    print("Hook: $hook\n");
-#   print(Dumper($args));
-
-    foreach my $key (@{$args->{KEYS}})
+    elsif($hook eq "packet_pre/storage_item_added")
     {
-        print("$key : \n");
-        print(Dumper($args->{$key}));
-        print("============================\n");
+        $action = "add";
+        $item_id = $args->{nameID};
+        $quantity = $args->{amount};
     }
+    elsif($hook eq "packet_pre/storage_item_removed")
+    {
+        my $item = $storage{$args->{index}};
+        
+        $action = "remove";
+        $item_id = $item->{nameID};
+        $quantity = $args->{amount};
+    }
+
+    print $remote to_json({
+        'event' => 'storage',
+        'data' => {
+            'status' => 'open',
+            'action' => $action,
+            'item_id' => $item_id,
+            'quantity' => $quantity
+        }
+    }) . "\n";
 }
 
 
