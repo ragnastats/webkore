@@ -255,16 +255,22 @@ sub movement_handler
 sub item_handler
 {
     my($hook, $args) = @_;
-    
+
     if($remote)
-    {
-        my $item = $char->inventory->getByServerIndex($args->{index});
-    
+    {    
+        # Make sure we are the one using the item!
+        if($hook eq 'packet_pre/item_used')
+        {
+            return unless($args->{ID} eq $char->{ID});
+        }
+        
         my $actions = {
             'packet/inventory_item_added' => 'add',
             'packet_pre/inventory_item_removed' => 'remove',
             'packet_pre/item_used' => 'remove'
         };
+    
+        my $item = $char->inventory->getByServerIndex($args->{index});
     
         # If an item was used, we need to calculate the quantity used based on the amount remaining
         if($hook eq 'packet_pre/item_used')
