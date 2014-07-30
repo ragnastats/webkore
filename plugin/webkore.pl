@@ -29,6 +29,7 @@ Commands::register(["wkdebug", "Debug stuff!", \&webkore_debug]);
 Commands::register(["wkdbg", "Debug stuff!", \&webkore_debug]);
 
 Plugins::register("WebKore", "OpenKore's Web Interface", \&unload);
+
 my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
 
                                 # Chats
@@ -172,6 +173,7 @@ sub verbose_handler
 
 sub chat_handler
 {
+    return unless $remote;
     my($hook, $args) = @_;
     my $chat = Storable::dclone($args);
     
@@ -223,7 +225,7 @@ sub chat_handler
     };
     
     # Ensure chat type is supported
-    if($remote and $chat_types->{$hook})
+    if($chat_types->{$hook})
     {
         my $type = $chat_types->{$hook};
         
@@ -245,99 +247,92 @@ sub chat_handler
 
 sub movement_handler
 {
+    return unless $remote;
     my($hook, $args) = @_;
     
-    if($remote)
-    {
-        print $remote to_json({
-            'event' => 'move',
-            'data' => {
-                'from' => $char->{pos},
-                'to' => $char->{pos_to},
-                'speed' => $char->{walk_speed}
-            }
-        }) . "\n";
-    }
+    print $remote to_json({
+        'event' => 'move',
+        'data' => {
+            'from' => $char->{pos},
+            'to' => $char->{pos_to},
+            'speed' => $char->{walk_speed}
+        }
+    }) . "\n";
 }
 
 sub item_handler
 {
+    return unless $remote;
     my($hook, $args) = @_;
 
-    if($remote)
+    # Make sure we are the one using the item!
+    if($hook eq 'packet_pre/item_used')
     {
-        # Make sure we are the one using the item!
-        if($hook eq 'packet_pre/item_used')
-        {
-            return unless($args->{ID} eq $char->{ID});
-        }
-        
-        my $actions = {
-            'packet/inventory_item_added' => 'add',
-            'packet_pre/inventory_item_removed' => 'remove',
-            'packet_pre/item_used' => 'remove'
-        };
-    
-        my $item = $char->inventory->getByServerIndex($args->{index});
-    
-        # If an item was used, we need to calculate the quantity used based on the amount remaining
-        if($hook eq 'packet_pre/item_used')
-        {
-            $args->{amount} = $item->{amount} - $args->{remaining};
-        }
-    
-        print $remote to_json({
-            'event' => 'item',
-            'data' => {
-                'action' => $actions->{$hook},
-                'item_id' => $item->{nameID},
-                'quantity' => $args->{amount}
-            }
-        }) . "\n";
+        return unless($args->{ID} eq $char->{ID});
     }
+    
+    my $actions = {
+        'packet/inventory_item_added' => 'add',
+        'packet_pre/inventory_item_removed' => 'remove',
+        'packet_pre/item_used' => 'remove'
+    };
+
+    my $item = $char->inventory->getByServerIndex($args->{index});
+
+    # If an item was used, we need to calculate the quantity used based on the amount remaining
+    if($hook eq 'packet_pre/item_used')
+    {
+        $args->{amount} = $item->{amount} - $args->{remaining};
+    }
+
+    print $remote to_json({
+        'event' => 'item',
+        'data' => {
+            'action' => $actions->{$hook},
+            'item_id' => $item->{nameID},
+            'quantity' => $args->{amount}
+        }
+    }) . "\n";
 }
 
 sub map_handler
 {
+    return unless $remote;
     my($hook, $args) = @_;
     my $pos = calcPosition($char);
     
-    if($remote)
-    {
-        print $remote to_json({
-            'event' => 'map',
-            'data' => {
-                'map' => {
-                    'name' => $field->{baseName}, 
-                    'width' => $field->{width}, 
-                    'height' => $field->{height},
-                    'ip' => ($args->{IP}) ? makeIP($args->{IP}) : 0
-                },
-                
-                'pos' => $pos
-            }
-        }) . "\n";
-    }
+    print $remote to_json({
+        'event' => 'map',
+        'data' => {
+            'map' => {
+                'name' => $field->{baseName}, 
+                'width' => $field->{width}, 
+                'height' => $field->{height},
+                'ip' => ($args->{IP}) ? makeIP($args->{IP}) : 0
+            },
+            
+            'pos' => $pos
+        }
+    }) . "\n";
 }
 
 sub info_handler
 {
+    return unless $remote;
     my($hook, $args) = @_;
     
-    if($remote)
-    {
-        print $remote to_json({
-            'event' => 'info',
-            'data' => {
-                'type' => $args->{type},
-                'value' => $args->{val}
-            }
-        }) . "\n";
-    }
+    print $remote to_json({
+        'event' => 'info',
+        'data' => {
+            'type' => $args->{type},
+            'value' => $args->{val}
+        }
+    }) . "\n";
 }
 
 sub storage_handler
 {
+    return unless $remote;
     my($hook, $args) = @_;
     my($action, $item_id, $quantity);
     
@@ -382,6 +377,7 @@ sub storage_handler
 
 sub equip_handler
 {
+    return unless $remote;
     my($hook, $args) = @_;
     
     # Packet lookup
