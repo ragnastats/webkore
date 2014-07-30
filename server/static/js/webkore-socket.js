@@ -115,4 +115,11 @@ $(document).ready(function()
         ragnarok.ui.clear.storage('.storage .ro-items');
         ragnarok.ui.populate.storage('.storage .ro-items', $('.ragnarok-tab-storage.active, .ro-tab-stor.active').attr('tab'));
     });
+    
+    socket.on('equip', function(equip)
+    {
+        ragnarok.inventory.equip(equip.item, equip.equipped);
+        ragnarok.ui.clear.inventory('.inventory .ro-items');
+        ragnarok.ui.populate.inventory('.inventory .ro-items', $('.ragnarok-tab-inventory.active, .ro-tab-inv.active').attr('tab'));
+    });
 });
