@@ -55,11 +55,30 @@ my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
                                 # Character info
                                 ['packet/stat_info', \&info_handler],
                                 
-                                # Storage packets
+                                # Storage
                                 ['packet/storage_opened', \&storage_handler],
                                 ['packet_pre/storage_item_added', \&storage_handler],
                                 ['packet_pre/storage_item_removed', \&storage_handler],
 
+                                # Equip
+                                ['packet/equip_item', \&equip_handler],
+                                ['packet/unequip_item', \&equip_handler],
+                                
+                                # TODO:
+                                # NPC packets
+                                ['packet/npc_talk', \&default_handler],
+                                ['packet/npc_talk_continue', \&default_handler],
+                                ['packet/npc_talk_close', \&default_handler],
+                                ['packet/npc_talk_responses', \&default_handler],
+                                ['packet/npc_store_begin', \&default_handler],
+                                ['packet/npc_store_info', \&default_handler],
+                                ['packet/npc_sell_list', \&default_handler],
+                                ['packet/npc_image', \&default_handler],
+                                ['packet/npc_talk_number', \&default_handler],
+                                
+                                # Actor packets (NPCs, Monsters, Players)
+                                # Chat windows
+                                # Vendor information
                                 
                                 # Guild packets
                                 ['packet/guild_name', \&default_handler],
@@ -77,17 +96,6 @@ my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
                                 ['packet/deal_finalize', \&default_handler],
                                 ['packet/deal_cancelled', \&default_handler],
                                 ['packet/deal_complete', \&default_handler],
-                                
-                                # NPC packets
-                                ['packet/npc_talk', \&default_handler],
-                                ['packet/npc_talk_continue', \&default_handler],
-                                ['packet/npc_talk_close', \&default_handler],
-                                ['packet/npc_talk_responses', \&default_handler],
-                                ['packet/npc_store_begin', \&default_handler],
-                                ['packet/npc_store_info', \&default_handler],
-                                ['packet/npc_sell_list', \&default_handler],
-                                ['packet/npc_image', \&default_handler],
-                                ['packet/npc_talk_number', \&default_handler],
                                 );
 
 sub unload
@@ -372,7 +380,29 @@ sub storage_handler
     }) . "\n";
 }
 
-
+sub equip_handler
+{
+    my($hook, $args) = @_;
+    
+    # Packet lookup
+    my $equip = {
+        'packet/equip_item' => 1,
+        'packet/unequip_item' => 0
+    };
+    
+    # Get the item by its index
+    my $item = $char->inventory->getByServerIndex($args->{index});
+    
+    # Save the type!
+    print $remote to_json({
+        'event' => 'equip',
+        'data' => {
+            'item' => $item->{nameID},
+            'equipped' => $item->{equipped},
+            'type' => {'inventory' => $item->{type}, 'equip' => $item->{type_equip}}
+        }
+    }) . "\n";
+}
 
 #
 # Helper Functions
@@ -387,7 +417,12 @@ sub character_export
     
     foreach my $item (@{$char->inventory->getItems()})
     {
-        push(@{$export->{inventory}}, {item => $item->{nameID}, quantity => $item->{amount}});	
+        push(@{$export->{inventory}}, {
+            'item' => $item->{nameID}, 
+            'quantity' => $item->{amount},
+            'equipped' => $item->{equipped},
+            'type' => {'inventory' => $item->{type}, 'equip' => $item->{type_equip}}
+        });
     }
 
     # Storage
@@ -398,7 +433,7 @@ sub character_export
         next if ($storageID[$i] eq "");
         my $item = $storage{$storageID[$i]};
     
-        push(@{$export->{storage}}, {item => $item->{nameID}, quantity => $item->{amount}});	
+        push(@{$export->{storage}}, {item => $item->{nameID}, quantity => $item->{amount}});
     }
 
     # Character information
