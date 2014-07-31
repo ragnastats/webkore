@@ -21,15 +21,13 @@ $(document).ready(function()
     
     socket.on('chat', function(chat)
     {
-        if(typeof ragnarok.data.chat == "undefined")
-            ragnarok.data.chat = [];
+        if(typeof ragnarok.data == "undefined")         ragnarok.data = {};
+        if(typeof ragnarok.data.chat == "undefined")    ragnarok.data.chat = [];
     
         chat.color = chat_colors[chat.type];
     
-        if(chat.type == "private_from")
-            chat.user = "( From: " + chat.user + " )";
-        else if(chat.type == "private_to")
-            chat.user = "( To: " + chat.user + " )";
+        if(chat.type == "private_from")     chat.user = "( From: " + chat.user + " )";
+        else if(chat.type == "private_to")  chat.user = "( To: " + chat.user + " )";
     
         var date = new Date(chat.timestamp);
         var dateString = date.getUTCFullYear() +"/"+
@@ -40,12 +38,9 @@ $(document).ready(function()
                           ("0" + date.getUTCSeconds()).slice(-2);
                     
         chat.timestamp = date;
-    
         ragnarok.data.chat.push(chat);
         
-        if(ragnarok.data.chat.length > 100)
-            ragnarok.data.chat.shift();
-        
+        if(ragnarok.data.chat.length > 100) ragnarok.data.chat.shift();        
         ragnarok.ui.populate.chat();
     });
     
@@ -81,10 +76,10 @@ $(document).ready(function()
     socket.on('info', function(info)
     {
         // Ensure the server didn't send us something we can't handle
-        if(typeof ragnarok.data.info_types[info.type] != "undefined" &&
-            typeof ragnarok.data.info_types[info.type].process == "function")
+        if(typeof ragnarok.lookup.info_types[info.type] != "undefined" &&
+            typeof ragnarok.lookup.info_types[info.type].process == "function")
         {
-            ragnarok.data.info_types[info.type].process(info.value);
+            ragnarok.lookup.info_types[info.type].process(info.value);
             ragnarok.ui.populate.character();
         }
     });
@@ -118,6 +113,23 @@ $(document).ready(function()
     
     socket.on('equip', function(equip)
     {
+        if(equip.equipped)
+        {
+            var slot = ragnarok.lookup.equipment_slots[equip.type.equip],
+                item_id = equip.item;
+
+            // Start by clearing out the slot
+            ragnarok.ui.unequip(slot);
+            
+            // Now equip our new item!
+            ragnarok.ui.equip(item_id, slot);
+        }
+        else
+        {
+            var slot = ragnarok.lookup.equipment_slots[equip.type.equip];
+            ragnarok.ui.unequip(slot);
+        }
+
         ragnarok.inventory.equip(equip.item, equip.equipped);
         ragnarok.ui.clear.inventory('.inventory .ro-items');
         ragnarok.ui.populate.inventory('.inventory .ro-items', $('.ragnarok-tab-inventory.active, .ro-tab-inv.active').attr('tab'));

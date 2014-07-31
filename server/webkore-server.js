@@ -114,10 +114,10 @@ net.createServer(function(socket)
                         buffered.data.type--;
                     
                         // Only try to process recieved data if it has a handler function
-                        if(typeof ragnarok.data.info_types[buffered.data.type] != "undefined" &&
-                            typeof ragnarok.data.info_types[buffered.data.type].process == "function")
+                        if(typeof ragnarok.lookup.info_types[buffered.data.type] != "undefined" &&
+                            typeof ragnarok.lookup.info_types[buffered.data.type].process == "function")
                         {
-                            ragnarok.data.info_types[buffered.data.type].process(buffered.data.value);
+                            ragnarok.lookup.info_types[buffered.data.type].process(buffered.data.value);
                             io.sockets.emit('info', buffered.data);
                         }
                         break;
