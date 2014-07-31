@@ -304,14 +304,14 @@ sub map_handler
     
     if($remote)
     {
-        # TODO: Include map IP for added fun :)
         print $remote to_json({
             'event' => 'map',
             'data' => {
                 'map' => {
                     'name' => $field->{baseName}, 
                     'width' => $field->{width}, 
-                    'height' => $field->{height}
+                    'height' => $field->{height},
+                    'ip' => ($args->{IP}) ? makeIP($args->{IP}) : 0
                 },
                 
                 'pos' => $pos
