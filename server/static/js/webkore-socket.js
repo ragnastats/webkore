@@ -35,7 +35,7 @@ $(document).ready(function()
                           ("0" + date.getUTCSeconds()).slice(-2);
                     
         chat.timestamp = date;
-        ragnarok.data.chat.messsages.push(chat);
+        ragnarok.data.chat.messages.push(chat);
         
         if(ragnarok.data.chat.messages.length > 100) ragnarok.data.chat.messages.shift();
         ragnarok.ui.populate.chat();
