@@ -17,6 +17,7 @@ $(document).ready(function()
             if(ragnarok.data.chat.status)   $wrap.addClass('active');
             else                            $wrap.removeClass('active');
             
+            $chat.trigger('focus');
             ragnarok.ui.populate.chat();
         }        
     });
