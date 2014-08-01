@@ -21,9 +21,6 @@ $(document).ready(function()
     
     socket.on('chat', function(chat)
     {
-        if(typeof ragnarok.data == "undefined")         ragnarok.data = {};
-        if(typeof ragnarok.data.chat == "undefined")    ragnarok.data.chat = [];
-    
         chat.color = chat_colors[chat.type];
     
         if(chat.type == "private_from")     chat.user = "( From: " + chat.user + " )";
@@ -38,9 +35,9 @@ $(document).ready(function()
                           ("0" + date.getUTCSeconds()).slice(-2);
                     
         chat.timestamp = date;
-        ragnarok.data.chat.push(chat);
+        ragnarok.data.chat.messsages.push(chat);
         
-        if(ragnarok.data.chat.length > 100) ragnarok.data.chat.shift();        
+        if(ragnarok.data.chat.messages.length > 100) ragnarok.data.chat.messages.shift();
         ragnarok.ui.populate.chat();
     });
     
