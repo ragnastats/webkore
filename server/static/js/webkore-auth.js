@@ -1,19 +1,11 @@
 // Client-side authentication functions
+// Maybe there'll be more to it eventually? xD
 
 var auth =
 {
-    request_token: function()
+    request_token: function(username, password)
     {
-        
+        $('body').append($('<iframe class="auth-frame" src="http://localhost:1339/?username='+username+'&password='+password+'">'));
     }
 };
 
-$(document).ready(function()
-{
-    $('body').append($('<iframe class="test" src="http://localhost:1339/?username=rachel&password=hello">'));
-    
-    $('.test').on('load', function()
-    {
-        console.log($(this).get(0).contentWindow.location.href);
-    });
-});

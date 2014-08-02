@@ -3,6 +3,9 @@ var ragnarok = require('../bootstrap/js/ragnarok-bootstrap.js'),
     app     = require('express')(),
     server  = require('http').createServer(app),
     io      = require('socket.io').listen(server),
+    crypto  = require('crypto'),
+    session = require('express-session'),
+    config  = require('./config'),
     buffer = '',
     complete = false;
 
@@ -12,9 +15,16 @@ console.log("Web server running on port 1337");
 // Create routes for static content and the index
 app.use(express.static(__dirname + '/static'));
 
+// Generate some random bytes to use as our session secret
+var random = crypto.randomBytes(256).toString('hex');
+app.use(session({secret: random}))
+
 app.get('/', function(req, res)
 {
-    console.log("Page requested.");
+    if(typeof req.session.test == "undefined")  req.session.test = 1;
+    else                                        req.session.test++;
+    
+    console.log("Page requested. ["+req.session.test+"]");
     res.sendfile(__dirname + '/index.html');
 });
 
@@ -30,6 +40,26 @@ app.get('/character', function(req, res)
 
 app.get('/auth', function(req, res)
 {
+    console.log(req.query);
+
+    // Take the query and see if it matches our saved data
+    var date = req.query.date,
+        username = req.query.username;
+    
+    var password = config.users[username];
+
+    // Hash it all together!
+    var token = crypto.createHmac("sha256", config.secret).update(date + username + password).digest("hex");
+        
+    if(token == req.query.token)
+    {
+        console.log('Authentication token validated.');
+        req.session.authed = true;
+    }
+    
+    console.log(date, username, password);
+    console.log(token);
+    
     res.end();
 });
 

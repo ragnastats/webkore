@@ -6,6 +6,7 @@
   "dependencies" : {
     "jquery": "*",
     "express": "*",
+    "express-session": "*",
     "socket.io": "*"
   },
   "license": "MIT"
