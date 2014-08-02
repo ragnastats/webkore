@@ -4,10 +4,13 @@ var ragnarok = require('../bootstrap/js/ragnarok-bootstrap.js'),
     server  = require('http').createServer(app),
     io      = require('socket.io').listen(server),
     crypto  = require('crypto'),
+    cookie  = require('cookie'),
+    cookieParser = require('cookie-parser'),
     session = require('express-session'),
     config  = require('./config'),
-    buffer = '',
-    complete = false;
+    buffer  = '',
+    complete = false,
+    authed  = {};
 
 server.listen(1337);
 console.log("Web server running on port 1337");
@@ -17,17 +20,15 @@ app.use(express.static(__dirname + '/static'));
 
 // Generate some random bytes to use as our session secret
 var random = crypto.randomBytes(256).toString('hex');
+app.use(cookieParser());
 app.use(session({secret: random}))
+
 
 app.get('/', function(req, res)
 {
-    if(typeof req.session.test == "undefined")  req.session.test = 1;
-    else                                        req.session.test++;
-    
-    console.log("Page requested. ["+req.session.test+"]");
+    console.log("Page requested.");
     res.sendfile(__dirname + '/index.html');
 });
-
 
 app.get('/character', function(req, res)
 {    
@@ -38,10 +39,12 @@ app.get('/character', function(req, res)
     }));
 });
 
+
+// TODO: Include session ID in authentication token
+// TODO: Add check to ensure tokens can only be used once
+// TODO: USE HTTPS LOL
 app.get('/auth', function(req, res)
 {
-    console.log(req.query);
-
     // Take the query and see if it matches our saved data
     var date = req.query.date,
         username = req.query.username;
@@ -54,14 +57,53 @@ app.get('/auth', function(req, res)
     if(token == req.query.token)
     {
         console.log('Authentication token validated.');
+        authed[req.sessionID] = true;
         req.session.authed = true;
     }
     
-    console.log(date, username, password);
-    console.log(token);
-    
     res.end();
 });
+
+
+// WebSocket specific events
+////////////////////////////////
+
+// TODO: Figure out how to not use this old deprecated function
+io.set('authorization', function (data, accept)
+{
+    // check if there's a cookie header
+    if (data.headers.cookie)
+    {
+        var cookies = cookie.parse(data.headers.cookie);
+        var decrypted = cookieParser.signedCookies(cookies, random);
+        data.session_BUTTS = decrypted['connect.sid'];
+    }
+    else
+    {
+       return accept('No cookie transmitted.', false);
+    }
+    
+    // accept the incoming connection
+    accept(null, true);
+});
+
+io.sockets.on('connection', function (socket)
+{
+    var cookies = cookie.parse(socket.handshake.headers.cookie);
+    var decrypted = cookieParser.signedCookies(cookies, random);
+    var sessionID = decrypted['connect.sid'];
+
+    socket.on('input', function(input)
+    {
+        if(authed[sessionID]) console.log("Authed: " + input.message);
+        else                  console.log("Not Authed!");
+    });
+});
+
+
+
+// Statistics server
+//////////////////////
 
 var net = require('net');
 

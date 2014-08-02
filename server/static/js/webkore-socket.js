@@ -11,7 +11,7 @@ var chat_colors = {
 
 $(document).ready(function()
 {
-    socket = io.connect(window.location.host);
+    socket = io.connect();
     
     socket.on('refresh', function()
     {

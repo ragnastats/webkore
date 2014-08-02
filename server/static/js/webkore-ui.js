@@ -7,9 +7,21 @@ $(document).ready(function()
         {
             var $wrap = $('.chat-input-wrap');
             var $chat = $('.chat-message-input');
+            var value = $chat.val();
             
-            if($chat.val())
+            if(value)
             {
+                var command = value.split(' ');
+                
+                if(command[0] == "/login")
+                {
+                    auth.request_token(command[1], command[2]);
+                }
+                else
+                {
+                    socket.emit('input', {message: value});
+                }
+                
                 $chat.val('');
             }
             else ragnarok.data.chat.status = !ragnarok.data.chat.status;
