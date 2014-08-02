@@ -28,6 +28,11 @@ app.get('/character', function(req, res)
     }));
 });
 
+app.get('/auth', function(req, res)
+{
+    res.end();
+});
+
 var net = require('net');
 
 var HOST = '0.0.0.0';
