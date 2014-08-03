@@ -6,6 +6,7 @@ use Data::Dumper;
 use Time::HiRes;
 use List::Util;
 use IO::Socket;
+use IO::Select;
 use Storable;
 use JSON;
 
@@ -19,7 +20,8 @@ use Utils;
 
 our @queue;
 our $timeout;
-our $remote;
+our $send;
+our $recv;
 
 Commands::register(["wkconnect", "Connect to WebKore", \&webkore_connect]);
 Commands::register(["wkc", "Connect to WebKore", \&webkore_connect]);
@@ -111,25 +113,26 @@ sub unload
 sub webkore_connect
 {
     my $server = ($config{webkore_server}) ? $config{webkore_server} : '127.0.0.1';
-    $remote = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => $server, PeerPort => 1338, Reuse => 1, Blocking => 0);
-
+    $send = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => $server, PeerPort => 1338, Reuse => 1);
+    $recv = IO::Select->new($send);
+    
     # Send character export after connecting to the statistics server
-    print $remote to_json({'event' => 'character', 'data' => character_export()}) . "\n";
+    print $send to_json({'event' => 'character', 'data' => character_export()}) . "\n";
 }
 
 sub webkore_disconnect
 {
-    shutdown($remote, 2) if $remote;
-    close($remote) if $remote;
+    shutdown($send, 2) if $send;
+    close($send) if $send;
 }
 
 sub webkore_debug
 {
     my($command, $message) = @_;
 
-    if($remote)
+    if($send)
     {
-        print $remote $message . "\n";
+        print $send $message . "\n";
     }
 }
 
@@ -139,15 +142,20 @@ sub webkore_debug
 
 sub loop
 {
-    return unless $remote;
+    return unless $send;
     
     # Check the socket for incoming data
-    my $line = $remote->getline();
-    chomp $line;
-    
-    if($line)
+    my @ready = $recv->can_read(0);
+        
+    foreach my $socket (@ready)
     {
-        Commands::run($line);
+        my $line = $socket->getline();
+        chomp $line;
+        
+        if($line)
+        {
+            Commands::run($line);
+        }
     }
 }
 
@@ -173,7 +181,7 @@ sub verbose_handler
 
 sub chat_handler
 {
-    return unless $remote;
+    return unless $send;
     my($hook, $args) = @_;
     my $chat = Storable::dclone($args);
     
@@ -202,7 +210,7 @@ sub chat_handler
             else {
                 $message = $lastpm[0]{user} . " doesn't want to receive messages"; }
 
-            print $remote to_json({
+            print $send to_json({
                 'event' => 'message',
                 'data' => {
                     'message' => $message,
@@ -234,7 +242,7 @@ sub chat_handler
         elsif($type eq "party") {
             $type = "party_from"; }
         
-        print $remote to_json({
+        print $send to_json({
             'event' => 'chat',
             'data' => {
                 'user' => $chat->{MsgUser},
@@ -247,10 +255,10 @@ sub chat_handler
 
 sub movement_handler
 {
-    return unless $remote;
+    return unless $send;
     my($hook, $args) = @_;
     
-    print $remote to_json({
+    print $send to_json({
         'event' => 'move',
         'data' => {
             'from' => $char->{pos},
@@ -262,7 +270,7 @@ sub movement_handler
 
 sub item_handler
 {
-    return unless $remote;
+    return unless $send;
     my($hook, $args) = @_;
 
     # Make sure we are the one using the item!
@@ -285,7 +293,7 @@ sub item_handler
         $args->{amount} = $item->{amount} - $args->{remaining};
     }
 
-    print $remote to_json({
+    print $send to_json({
         'event' => 'item',
         'data' => {
             'action' => $actions->{$hook},
@@ -297,11 +305,11 @@ sub item_handler
 
 sub map_handler
 {
-    return unless $remote;
+    return unless $send;
     my($hook, $args) = @_;
     my $pos = calcPosition($char);
     
-    print $remote to_json({
+    print $send to_json({
         'event' => 'map',
         'data' => {
             'map' => {
@@ -318,10 +326,10 @@ sub map_handler
 
 sub info_handler
 {
-    return unless $remote;
+    return unless $send;
     my($hook, $args) = @_;
     
-    print $remote to_json({
+    print $send to_json({
         'event' => 'info',
         'data' => {
             'type' => $args->{type},
@@ -332,13 +340,13 @@ sub info_handler
 
 sub storage_handler
 {
-    return unless $remote;
+    return unless $send;
     my($hook, $args) = @_;
     my($action, $item_id, $quantity);
     
     if($hook eq "packet/storage_opened")
     {
-        print $remote to_json({
+        print $send to_json({
             'event' => 'storage',
             'data' => {
                 'status' => 'open',
@@ -364,7 +372,7 @@ sub storage_handler
         $quantity = $args->{amount};
     }
 
-    print $remote to_json({
+    print $send to_json({
         'event' => 'storage',
         'data' => {
             'status' => 'open',
@@ -377,7 +385,7 @@ sub storage_handler
 
 sub equip_handler
 {
-    return unless $remote;
+    return unless $send;
     my($hook, $args) = @_;
     
     # Packet lookup
@@ -390,7 +398,7 @@ sub equip_handler
     my $item = $char->inventory->getByServerIndex($args->{index});
     
     # Save the type!
-    print $remote to_json({
+    print $send to_json({
         'event' => 'equip',
         'data' => {
             'item' => $item->{nameID},
