@@ -69,26 +69,6 @@ app.get('/auth', function(req, res)
 // WebSocket specific events
 ////////////////////////////////
 
-// TODO: Figure out how to not use this old deprecated function
-io.set('authorization', function (data, accept)
-{
-    // check if there's a cookie header
-    if (data.headers.cookie)
-    {
-        var cookies = cookie.parse(data.headers.cookie);
-        var decrypted = cookieParser.signedCookies(cookies, random);
-        data.session_BUTTS = decrypted['connect.sid'];
-    }
-    else
-    {
-       return accept('No cookie transmitted.', false);
-    }
-    
-    // accept the incoming connection
-    accept(null, true);
-});
-
-
 io.sockets.on('connection', function(websocket)
 {
     var cookies = cookie.parse(websocket.handshake.headers.cookie);
