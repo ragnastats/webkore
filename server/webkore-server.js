@@ -10,7 +10,8 @@ var ragnarok = require('../bootstrap/js/ragnarok-bootstrap.js'),
     config  = require('./config'),
     buffer  = '',
     complete = false,
-    authed  = {};
+    authed  = {},
+    connections = [];
 
 server.listen(1337);
 console.log("Web server running on port 1337");
@@ -87,19 +88,30 @@ io.set('authorization', function (data, accept)
     accept(null, true);
 });
 
-io.sockets.on('connection', function (socket)
+
+io.sockets.on('connection', function(websocket)
 {
-    var cookies = cookie.parse(socket.handshake.headers.cookie);
+    var cookies = cookie.parse(websocket.handshake.headers.cookie);
     var decrypted = cookieParser.signedCookies(cookies, random);
     var sessionID = decrypted['connect.sid'];
 
-    socket.on('input', function(input)
+    websocket.on('input', function(input)
     {
-        if(authed[sessionID]) console.log("Authed: " + input.message);
-        else                  console.log("Not Authed!");
+        if(authed[sessionID])
+        {
+            console.log("Authed: " + input.message);
+            
+            for(var i = 0, l = connections.length; i < l; i++)
+            {
+                connections[i].write(input.message + "\n");
+            }
+        }
+        else
+        {
+            console.log("Anonymous: " + input.message);
+        }
     });
 });
-
 
 
 // Statistics server
@@ -113,6 +125,8 @@ var PORT = 1338;
 // Create a server instance
 net.createServer(function(socket)
 {
+    connections.push(socket);
+    
     console.log('CONNECTED: ' + socket.remoteAddress +':'+ socket.remotePort);
     
     socket.on('data', function(data)

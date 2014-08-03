@@ -111,7 +111,7 @@ sub unload
 sub webkore_connect
 {
     my $server = ($config{webkore_server}) ? $config{webkore_server} : '127.0.0.1';
-    $remote = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => $server, PeerPort => 1338, Reuse => 1);
+    $remote = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => $server, PeerPort => 1338, Reuse => 1, Blocking => 0);
 
     # Send character export after connecting to the statistics server
     print $remote to_json({'event' => 'character', 'data' => character_export()}) . "\n";
@@ -139,15 +139,15 @@ sub webkore_debug
 
 sub loop
 {
-    if(Network::DirectConnection::getState() == Network::IN_GAME and $remote and $timeout < time())
+    return unless $remote;
+    
+    # Check the socket for incoming data
+    my $line = $remote->getline();
+    chomp $line;
+    
+    if($line)
     {
-        # Check connection status
-        if($remote->connected())
-        {
-        
-        }
-        
-        $timeout = time() + 1;
+        Commands::run($line);
     }
 }
 
