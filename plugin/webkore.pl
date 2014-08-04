@@ -32,78 +32,81 @@ Commands::register(["wkdbg", "Debug stuff!", \&webkore_debug]);
 
 Plugins::register("WebKore", "OpenKore's Web Interface", \&unload);
 
-my $hooks = Plugins::addHooks(['mainLoop_post', \&loop],
+my $logHook = Log::addHook(\&log_handler);
+my $packetHooks = Plugins::addHooks(
+    ['mainLoop_post', \&loop],
 
-                                # Chats
-                                ["packet_selfChat", \&chat_handler],
-                                ["packet_pubMsg", \&chat_handler],
-                                ["packet_partyMsg", \&chat_handler],
-                                ["packet_guildMsg", \&chat_handler],
-                                ["packet_privMsg", \&chat_handler],
-                                ["packet_pre/private_message_sent", \&chat_handler],
-                                
-                                # Movement
-                                ["packet/character_moves", \&movement_handler],
-                                
-                                # Items
-                                ['packet/inventory_item_added', \&item_handler],
-                                ['packet_pre/inventory_item_removed', \&item_handler],
-                                ['packet_pre/item_used', \&item_handler],
-                                
-                                # Map packets
-                                ['packet/map_loaded', \&map_handler],
-                                ['packet/map_change', \&map_handler],
-                                ['packet/map_changed', \&map_handler],
-                                
-                                # Character info
-                                ['packet/stat_info', \&info_handler],
-                                
-                                # Storage
-                                ['packet/storage_opened', \&storage_handler],
-                                ['packet_pre/storage_item_added', \&storage_handler],
-                                ['packet_pre/storage_item_removed', \&storage_handler],
+    # Chats
+    ["packet_selfChat", \&chat_handler],
+    ["packet_pubMsg", \&chat_handler],
+    ["packet_partyMsg", \&chat_handler],
+    ["packet_guildMsg", \&chat_handler],
+    ["packet_privMsg", \&chat_handler],
+    ["packet_pre/private_message_sent", \&chat_handler],
 
-                                # Equip
-                                ['packet/equip_item', \&equip_handler],
-                                ['packet/unequip_item', \&equip_handler],
-                                
-                                # TODO:
-                                # NPC packets
-                                ['packet/npc_talk', \&default_handler],
-                                ['packet/npc_talk_continue', \&default_handler],
-                                ['packet/npc_talk_close', \&default_handler],
-                                ['packet/npc_talk_responses', \&default_handler],
-                                ['packet/npc_store_begin', \&default_handler],
-                                ['packet/npc_store_info', \&default_handler],
-                                ['packet/npc_sell_list', \&default_handler],
-                                ['packet/npc_image', \&default_handler],
-                                ['packet/npc_talk_number', \&default_handler],
-                                
-                                # Actor packets (NPCs, Monsters, Players)
-                                # Chat windows
-                                # Vendor information
-                                
-                                # Guild packets
-                                ['packet/guild_name', \&default_handler],
-                                ['packet/guild_member_online_status', \&default_handler],
-                                ['packet/guild_notice', \&default_handler],
-                                ['packet/guild_member_add', \&default_handler],
-                                ['packet/guild_info', \&default_handler],
-                                ['packet/guild_member_map_change', \&default_handler],
-                                
-                                # Deal packets
-                                ['packet/deal_request', \&default_handler],
-                                ['packet/deal_begin', \&default_handler],
-                                ['packet/deal_add_other', \&default_handler],
-                                ['packet/deal_add_you', \&default_handler],
-                                ['packet/deal_finalize', \&default_handler],
-                                ['packet/deal_cancelled', \&default_handler],
-                                ['packet/deal_complete', \&default_handler],
-                                );
+    # Movement
+    ["packet/character_moves", \&movement_handler],
+
+    # Items
+    ['packet/inventory_item_added', \&item_handler],
+    ['packet_pre/inventory_item_removed', \&item_handler],
+    ['packet_pre/item_used', \&item_handler],
+
+    # Map packets
+    ['packet/map_loaded', \&map_handler],
+    ['packet/map_change', \&map_handler],
+    ['packet/map_changed', \&map_handler],
+
+    # Character info
+    ['packet/stat_info', \&info_handler],
+
+    # Storage
+    ['packet/storage_opened', \&storage_handler],
+    ['packet_pre/storage_item_added', \&storage_handler],
+    ['packet_pre/storage_item_removed', \&storage_handler],
+
+    # Equip
+    ['packet/equip_item', \&equip_handler],
+    ['packet/unequip_item', \&equip_handler],
+
+    # TODO:
+    # NPC packets
+    ['packet/npc_talk', \&default_handler],
+    ['packet/npc_talk_continue', \&default_handler],
+    ['packet/npc_talk_close', \&default_handler],
+    ['packet/npc_talk_responses', \&default_handler],
+    ['packet/npc_store_begin', \&default_handler],
+    ['packet/npc_store_info', \&default_handler],
+    ['packet/npc_sell_list', \&default_handler],
+    ['packet/npc_image', \&default_handler],
+    ['packet/npc_talk_number', \&default_handler],
+
+    # Actor packets (NPCs, Monsters, Players)
+    # Chat windows
+    # Vendor information
+
+    # Guild packets
+    ['packet/guild_name', \&default_handler],
+    ['packet/guild_member_online_status', \&default_handler],
+    ['packet/guild_notice', \&default_handler],
+    ['packet/guild_member_add', \&default_handler],
+    ['packet/guild_info', \&default_handler],
+    ['packet/guild_member_map_change', \&default_handler],
+
+    # Deal packets
+    ['packet/deal_request', \&default_handler],
+    ['packet/deal_begin', \&default_handler],
+    ['packet/deal_add_other', \&default_handler],
+    ['packet/deal_add_you', \&default_handler],
+    ['packet/deal_finalize', \&default_handler],
+    ['packet/deal_cancelled', \&default_handler],
+    ['packet/deal_complete', \&default_handler],
+);
 
 sub unload
 {
-    Plugins::delHooks($hooks);
+    Plugins::delHooks($packetHooks);
+    Log::delHook($logHook);
 }
 
 #
@@ -177,6 +180,30 @@ sub verbose_handler
         print(Dumper($args->{$key}));
         print("============================\n");
     }
+}
+
+sub log_handler
+{
+    return unless $send;
+    my($type, $domain, $level, $globalVerbosity, $message, $user_data, $near, $far) = @_;
+    return if $type eq "debug";
+    
+    if($type eq "error" or $type eq "message")
+    {
+        return if($type eq "message" and ($domain ne "success" and $domain ne "info" and $domain ne "list"));
+        chomp $message;
+        
+        print $send to_json({
+            'event' => 'message',
+            'data' => {
+                'message' => $message,
+                'domain' => $domain,
+                'type' => $type
+            }
+        }) . "\n";
+    }
+    
+#    print("$type - $domain - $message\n");
 }
 
 sub chat_handler
