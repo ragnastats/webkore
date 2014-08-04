@@ -196,7 +196,7 @@ sub log_handler
         print $send to_json({
             'event' => 'message',
             'data' => {
-                'message' => $message,
+                'value' => $message,
                 'domain' => $domain,
                 'type' => $type
             }
