@@ -131,4 +131,24 @@ $(document).ready(function()
         ragnarok.ui.clear.inventory('.inventory .ro-items');
         ragnarok.ui.populate.inventory('.inventory .ro-items', $('.ragnarok-tab-inventory.active, .ro-tab-inv.active').attr('tab'));
     });
+    
+    socket.on('message', function(message)
+    {
+        // Construct chat messages from message value
+        var messages = message.value.split('\n');
+        
+        for(var i = 0, l = messages.length; i < l; i++)
+        {
+            var chat = {
+                color: chat_colors.party_from,
+                user: '|',
+                message: messages[i].replace(/ /g, ' ')
+            };
+
+            ragnarok.data.chat.messages.push(chat);        
+            if(ragnarok.data.chat.messages.length > 100) ragnarok.data.chat.messages.shift();
+        }
+        
+        ragnarok.ui.populate.chat();
+    });
 });

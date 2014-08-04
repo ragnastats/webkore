@@ -202,6 +202,10 @@ net.createServer(function(socket)
                         io.sockets.emit('equip', buffered.data);
                         break;
                         
+                    case "message":
+                        io.sockets.emit('message', buffered.data);
+                        break;
+                        
                     default:
                         console.log('Unhandled event recieved: ' + buffered.event);
                         console.log(buffered);
