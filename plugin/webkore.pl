@@ -187,10 +187,11 @@ sub log_handler
     return unless $send;
     my($type, $domain, $level, $globalVerbosity, $message, $user_data, $near, $far) = @_;
     return if $type eq "debug";
+    #print("$type, $domain, $level, $globalVerbosity, $message, $user_data, $near, $far\n");
     
-    if($type eq "error" or $type eq "message")
+    # Only send messages to WebKore if they were initiated by a console command
+    if($near =~ m/^Commands/ or $far =~ m/^Commands/)
     {
-        return if($type eq "message" and ($domain ne "success" and $domain ne "info" and $domain ne "list"));
         chomp $message;
         
         print $send to_json({
@@ -202,8 +203,6 @@ sub log_handler
             }
         }) . "\n";
     }
-    
-#    print("$type - $domain - $message\n");
 }
 
 sub chat_handler
