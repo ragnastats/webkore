@@ -114,11 +114,7 @@ $(document).ready(function()
         {
             var slot = ragnarok.lookup.equipment_slots[equip.type.equip],
                 item_id = equip.item;
-
-            // Start by clearing out the slot
-            ragnarok.ui.unequip(slot);
             
-            // Now equip our new item!
             ragnarok.ui.equip(item_id, slot);
         }
         else
