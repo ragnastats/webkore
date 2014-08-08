@@ -69,7 +69,15 @@ my $packetHooks = Plugins::addHooks(
     ['packet/equip_item', \&equip_handler],
     ['packet/unequip_item', \&equip_handler],
 
+    # Actor packets (NPCs, Monsters, Players)
+    ['packet/actor_display', \&actor_handler],
+    ['packet/actor_died_or_disappeared', \&actor_handler],
+
+    
     # TODO:
+    # Chat windows
+    # Vendor information
+
     # NPC packets
     ['packet/npc_talk', \&default_handler],
     ['packet/npc_talk_continue', \&default_handler],
@@ -80,10 +88,6 @@ my $packetHooks = Plugins::addHooks(
     ['packet/npc_sell_list', \&default_handler],
     ['packet/npc_image', \&default_handler],
     ['packet/npc_talk_number', \&default_handler],
-
-    # Actor packets (NPCs, Monsters, Players)
-    # Chat windows
-    # Vendor information
 
     # Guild packets
     ['packet/guild_name', \&default_handler],
@@ -176,10 +180,10 @@ sub verbose_handler
 
     foreach my $key (@{$args->{KEYS}})
     {
-        print("$key : \n");
-        print(Dumper($args->{$key}));
-        print("============================\n");
+        print("$key : $args->{$key} \n");
     }
+    
+    print("============================\n");
 }
 
 sub log_handler
@@ -298,7 +302,7 @@ sub item_handler
 {
     return unless $send;
     my($hook, $args) = @_;
-
+    
     # Make sure we are the one using the item!
     if($hook eq 'packet_pre/item_used')
     {
@@ -432,6 +436,46 @@ sub equip_handler
             'type' => {'inventory' => $item->{type}, 'equip' => $item->{type_equip}}
         }
     }) . "\n";
+}
+
+sub actor_handler
+{
+    return unless $send;
+    my($hook, $args) = @_;
+
+    # Convert binary to useful data
+    my $actorID = unpack("V", $args->{ID});
+    my $pos = {};
+    
+    # Actor Moved
+    if(length $args->{coords} == 6) {
+        makeCoordsFromTo(\%{$pos->{from}}, \%{$pos->{to}}, $args->{coords});
+    }
+    # Actor Exists/Disappeared
+    else {
+        makeCoordsDir(\%{$pos->{to}}, $args->{coords}, \$args->{body_dir});
+        $pos->{from} = $pos->{to};
+    }
+    
+    my $output = {
+        'event' => 'actor',
+        'data' => {
+            'action' => 'remove',
+            'id' => $actorID,
+            'type' => $args->{type},
+            'pos' => $pos
+        }
+    };
+    
+    if($hook eq "packet/actor_display")
+    {
+        $output->{data}->{action} = 'display';
+        $output->{data}->{name} = $args->{name};
+        $output->{data}->{object} = $args->{object_type};
+        $output->{data}->{speed} = $args->{walk_speed};
+    }
+    
+    print $send to_json($output) . "\n";
 }
 
 #
