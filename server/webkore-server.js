@@ -1,4 +1,4 @@
-var ragnarok = require('../bootstrap/js/ragnarok-bootstrap.js'),
+var ragnarok = require('../bootstrap/_shared/js/ragnarok-bootstrap.js'),
     express = require('express'),
     app     = require('express')(),
     server  = require('http').createServer(app),
