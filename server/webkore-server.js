@@ -205,6 +205,10 @@ net.createServer(function(socket)
                     case "message":
                         io.sockets.emit('message', buffered.data);
                         break;
+
+                    case "actor":
+                        io.sockets.emit('actor', buffered.data);
+                        break;
                         
                     default:
                         console.log('Unhandled event recieved: ' + buffered.event);

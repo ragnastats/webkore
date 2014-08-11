@@ -45,6 +45,8 @@ $(document).ready(function()
     {
         ragnarok.character.pos = move.to;
         ragnarok.ui.populate.map();
+
+        ragnarok.map.move(move.to);
     });
     
     socket.on('item', function(item)
@@ -146,5 +148,37 @@ $(document).ready(function()
         }
         
         ragnarok.ui.populate.chat();
+    });
+
+    // TODO: Rename webkore hooks from actor to character
+    socket.on('actor', function(character)
+    {
+        // Display a character
+        if(character.action == "display")
+        {
+            console.log("Type: ", character.type, "Object: ", character.object);
+            
+            // If the character doesn't exist 
+            if($('#'+character.id).length == 0)
+            {
+                // TODO: Determine correct character types
+                ragnarok.map.character.add(character.id, character.name, "player", character.pos.from);
+            }
+
+            // If the character is moving
+            if(character.pos.from.x != character.pos.to.x || character.pos.from.y != character.pos.to.y)
+            {
+                console.log("MOVING?");
+                // TODO: Include character speed
+                ragnarok.map.character.move(character.id, character.pos.to);
+            }
+        }
+        else
+        {
+            ragnarok.map.character.remove(character.id);
+        }
+        
+        
+        console.log(character);
     });
 });

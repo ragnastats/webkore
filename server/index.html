@@ -6,6 +6,8 @@
         <link rel="stylesheet" type="text/css" href="bootstrap/css/ragnarok-bootstrap.min.css" />
         <link rel="stylesheet" type="text/css" href="bootstrap/css/ragnarok-bootstrap.css" />
         <link rel="stylesheet" type="text/css" href="bootstrap/css/ragnarok-misc.css" />
+        <link rel="stylesheet" type="text/css" href="bootstrap/css/ragnarok-misc.css" />
+        <link rel="stylesheet" type="text/css" href="bootstrap/map/css/ragnarok-map.css" />
         <link rel="stylesheet" type="text/css" href="/css/webkore.css" />
         <script src="bootstrap/shared/js/vendor/modernizr.js"></script>
 
@@ -24,7 +26,11 @@
     </head>
 
     <body class="ragnarok">
-        <div class="cover"></div>
+        <div class="cover">
+            <div class="ro-map-bg">
+                <div class="ro-map-fg"></div>
+            </div>
+        </div>
 
         <script src='bootstrap/shared/js/vendor/jquery.min.js'></script>
         <script src='bootstrap/shared/js/vendor/hogan-3.0.2.min.js'></script>
@@ -36,6 +42,7 @@
         <script src='bootstrap/js/ragnarok-template.js'></script>
         <script src='bootstrap/js/ragnarok-ui.js'></script>
         <script src='bootstrap/js/ragnarok-fun.js'></script>
+        <script src='bootstrap/map/js/ragnarok-map.js'></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="/js/webkore-socket.js"></script>
         <script src="/js/webkore-ui.js"></script>
@@ -63,7 +70,10 @@
                         $(document).trigger('initialize');
                         
                         // Load character data once all our windows have loaded!
-                        ragnarok.ui.load('/character');
+                        ragnarok.ui.load('/character', function()
+                        {
+                            ragnarok.map.init(ragnarok.character.name, ragnarok.character.pos);
+                        });
                     });
                 });
             });
