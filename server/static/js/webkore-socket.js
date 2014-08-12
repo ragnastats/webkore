@@ -15,8 +15,8 @@ $(document).ready(function()
     
     socket.on('refresh', function()
     {
-        // Reload character data when refresh event is recieved
-        ragnarok.ui.load('/character');
+        // Reload player data when refresh event is recieved
+        ragnarok.ui.load('/player');
     });
     
     socket.on('chat', function(chat)
