@@ -477,16 +477,16 @@ sub character_handler
         'event' => 'character',
         'data' => {
             'action' => 'remove',
-            'id' => $characterID,
-            'type' => $args->{type}
+            'id' => $characterID
         }
     };
     
     if($hook eq "packet/actor_display")
     {
+        my $actor = Actor::get($args->{ID});
         $output->{data}->{action} = 'display';
+        $output->{data}->{type} = lc($actor->{actorType});
         $output->{data}->{name} = $args->{name};
-        $output->{data}->{object} = $args->{object_type};
         $output->{data}->{speed} = $args->{walk_speed};
         $output->{data}->{pos} = $pos;
     }
