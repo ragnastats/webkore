@@ -70,6 +70,8 @@ $(document).ready(function()
         ragnarok.character.map = map.map;
         ragnarok.character.pos = map.pos;
         ragnarok.ui.populate.map();
+
+        ragnarok.map.position(map.pos);
     });
     
     socket.on('info', function(info)
@@ -168,7 +170,6 @@ $(document).ready(function()
             // If the character is moving
             if(character.pos.from.x != character.pos.to.x || character.pos.from.y != character.pos.to.y)
             {
-                console.log("MOVING?");
                 // TODO: Include character speed
                 ragnarok.map.character.move(character.id, character.pos.to);
             }
@@ -177,7 +178,6 @@ $(document).ready(function()
         {
             ragnarok.map.character.remove(character.id);
         }
-        
         
         console.log(character);
     });

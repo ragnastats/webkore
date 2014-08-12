@@ -69,8 +69,8 @@
                     {
                         $(document).trigger('initialize');
                         
-                        // Load character data once all our windows have loaded!
-                        ragnarok.ui.load('/character', function()
+                        // Load player data once all our windows have loaded!
+                        ragnarok.ui.load('/player', function()
                         {
                             ragnarok.map.init(ragnarok.character.name, ragnarok.character.pos);
                         });

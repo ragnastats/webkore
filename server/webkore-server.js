@@ -31,10 +31,10 @@ app.get('/', function(req, res)
     res.sendfile(__dirname + '/index.html');
 });
 
-app.get('/character', function(req, res)
+app.get('/player', function(req, res)
 {    
     res.end(JSON.stringify({
-        character: ragnarok.character,
+        player: ragnarok.player,
         storage: ragnarok.storage.items,
         inventory: ragnarok.inventory.items
     }));
@@ -152,16 +152,16 @@ net.createServer(function(socket)
                         io.sockets.emit('chat', buffered.data);
                         break;
                         
-                    case "character":
-                        // Save character data
-                        ragnarok.character = buffered.data.character;
+                    case "player":
+                        // Save player data
+                        ragnarok.player = buffered.data.player;
                         ragnarok.storage.items = buffered.data.storage;
                         ragnarok.inventory.items = buffered.data.inventory;
                         io.sockets.emit('refresh');
                         break;
                         
                     case "move":
-                        ragnarok.character.pos = buffered.data.to;
+                        ragnarok.player.pos = buffered.data.to;
                         io.sockets.emit('move', buffered.data);
                         break;
                         
@@ -175,8 +175,8 @@ net.createServer(function(socket)
                         break;
                         
                     case "map":
-                        ragnarok.character.map = buffered.data.map;
-                        ragnarok.character.pos = buffered.data.pos;
+                        ragnarok.player.map = buffered.data.map;
+                        ragnarok.player.pos = buffered.data.pos;
                         io.sockets.emit('map', buffered.data);
                         break;
                         
@@ -206,8 +206,8 @@ net.createServer(function(socket)
                         io.sockets.emit('message', buffered.data);
                         break;
 
-                    case "actor":
-                        io.sockets.emit('actor', buffered.data);
+                    case "character":
+                        io.sockets.emit('character', buffered.data);
                         break;
                         
                     default:
