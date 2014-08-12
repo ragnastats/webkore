@@ -36,7 +36,8 @@ app.get('/player', function(req, res)
     res.end(JSON.stringify({
         player: ragnarok.player,
         storage: ragnarok.storage.items,
-        inventory: ragnarok.inventory.items
+        inventory: ragnarok.inventory.items,
+        characters: ragnarok.data.characters
     }));
 });
 
@@ -130,8 +131,7 @@ net.createServer(function(socket)
             for($i = 0; $i < length; $i++)
             {
                 // Skip empty buffers
-                if(buffer_array[$i] == '')
-                    continue;
+                if(buffer_array[$i] == '') continue;
                 
                 try
                 {
@@ -207,7 +207,13 @@ net.createServer(function(socket)
                         break;
 
                     case "character":
-                        io.sockets.emit('character', buffered.data);
+                        var character = buffered.data;
+
+                        if(typeof ragnarok.data.characters == "undefined") ragnarok.data.characters = {};                        
+                        if(character.action == "display")   ragnarok.data.characters[character.id] = character;
+                        else                                delete(ragnarok.data.characters[character.id]);
+                                            
+                        io.sockets.emit('character', character);
                         break;
                         
                     default:

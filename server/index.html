@@ -70,13 +70,22 @@
                         $(document).trigger('initialize');
                         
                         // Load player data once all our windows have loaded!
-                        ragnarok.ui.load('/player', function()
+                        ragnarok.ui.load('/player', function(response)
                         {
                             ragnarok.map.init(ragnarok.player.name, ragnarok.player.pos);
+                            populate_map(response.characters);
                         });
                     });
                 });
             });
+
+            function populate_map(data)
+            {
+                $.each(data, function(id, character)
+                {
+                    ragnarok.map.character.add(character.id, character.name, character.type, character.pos.from);
+                });
+            }
         </script>
     </body>
 </html>

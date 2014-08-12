@@ -13,10 +13,11 @@ $(document).ready(function()
 {
     socket = io.connect();
     
-    socket.on('refresh', function()
+    socket.on('refresh', function(response)
     {
         // Reload player data when refresh event is recieved
         ragnarok.ui.load('/player');
+        populate_map(response.characters);
     });
     
     socket.on('chat', function(chat)
@@ -157,12 +158,9 @@ $(document).ready(function()
         // Display a character
         if(character.action == "display")
         {
-            console.log("Type: ", character.type, "Object: ", character.object);
-            
             // If the character doesn't exist 
             if($('#'+character.id).length == 0)
             {
-                // TODO: Determine correct character types
                 ragnarok.map.character.add(character.id, character.name, character.type, character.pos.from);
             }
 
@@ -177,7 +175,5 @@ $(document).ready(function()
         {
             ragnarok.map.character.remove(character.id);
         }
-        
-        console.log(character);
     });
 });
