@@ -37,15 +37,18 @@ my $packetHooks = Plugins::addHooks(
     ['mainLoop_post', \&loop],
 
     # Chats
-    ["packet_selfChat", \&chat_handler],
-    ["packet_pubMsg", \&chat_handler],
-    ["packet_partyMsg", \&chat_handler],
-    ["packet_guildMsg", \&chat_handler],
-    ["packet_privMsg", \&chat_handler],
-    ["packet_pre/private_message_sent", \&chat_handler],
+    ['packet_selfChat', \&chat_handler],
+    ['packet_pubMsg', \&chat_handler],
+    ['packet_partyMsg', \&chat_handler],
+    ['packet_guildMsg', \&chat_handler],
+    ['packet_privMsg', \&chat_handler],
+    ['packet_pre/private_message_sent', \&chat_handler],
 
+    # Broadcasts
+    ['local_broadcast', \&broadcast_handler],
+    
     # Movement
-    ["packet/character_moves", \&movement_handler],
+    ['packet/character_moves', \&movement_handler],
 
     # Items
     ['packet/inventory_item_added', \&item_handler],
@@ -57,7 +60,7 @@ my $packetHooks = Plugins::addHooks(
     ['packet/map_change', \&map_handler],
     ['packet/map_changed', \&map_handler],
 
-    # Character info
+    # Player stats
     ['packet/stat_info', \&info_handler],
 
     # Storage
@@ -70,8 +73,8 @@ my $packetHooks = Plugins::addHooks(
     ['packet/unequip_item', \&equip_handler],
 
     # Actor packets (NPCs, Monsters, Players)
-    ['packet/actor_display', \&actor_handler],
-    ['packet/actor_died_or_disappeared', \&actor_handler],
+    ['packet/actor_display', \&character_handler],
+    ['packet/actor_died_or_disappeared', \&character_handler],
 
     
     # TODO:
@@ -123,8 +126,8 @@ sub webkore_connect
     $send = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => $server, PeerPort => 1338, Reuse => 1);
     $recv = IO::Select->new($send);
     
-    # Send character export after connecting to the statistics server
-    print $send to_json({'event' => 'character', 'data' => character_export()}) . "\n";
+    # Send player export after connecting to the statistics server
+    print $send to_json({'event' => 'player', 'data' => player_export()}) . "\n";
 }
 
 sub webkore_disconnect
@@ -283,6 +286,19 @@ sub chat_handler
     }    
 }
 
+sub broadcast_handler
+{
+    my($hook, $args) = @_;
+    print("Hook: $hook\n");
+
+    foreach my $key (@{$args->{KEYS}})
+    {
+        print("$key : $args->{$key} \n");
+    }
+    
+    print("============================\n");
+}
+
 sub movement_handler
 {
     return unless $send;
@@ -438,32 +454,31 @@ sub equip_handler
     }) . "\n";
 }
 
-sub actor_handler
+sub character_handler
 {
     return unless $send;
     my($hook, $args) = @_;
 
     # Convert binary to useful data
-    my $actorID = unpack("V", $args->{ID});
+    my $characterID = unpack("V", $args->{ID});
     my $pos = {};
     
-    # Actor Moved
+    # Character Moved
     if(length $args->{coords} == 6) {
         makeCoordsFromTo(\%{$pos->{from}}, \%{$pos->{to}}, $args->{coords});
     }
-    # Actor Exists/Disappeared
+    # Character Exists/Disappeared
     else {
         makeCoordsDir(\%{$pos->{to}}, $args->{coords}, \$args->{body_dir});
         $pos->{from} = $pos->{to};
     }
     
     my $output = {
-        'event' => 'actor',
+        'event' => 'character',
         'data' => {
             'action' => 'remove',
-            'id' => $actorID,
-            'type' => $args->{type},
-            'pos' => $pos
+            'id' => $characterID,
+            'type' => $args->{type}
         }
     };
     
@@ -473,6 +488,7 @@ sub actor_handler
         $output->{data}->{name} = $args->{name};
         $output->{data}->{object} = $args->{object_type};
         $output->{data}->{speed} = $args->{walk_speed};
+        $output->{data}->{pos} = $pos;
     }
     
     print $send to_json($output) . "\n";
@@ -482,7 +498,7 @@ sub actor_handler
 # Helper Functions
 #######################
 
-sub character_export
+sub player_export
 {
     my $export = {"inventory" => [], "storage" => []};
     
@@ -510,12 +526,12 @@ sub character_export
         push(@{$export->{storage}}, {item => $item->{nameID}, quantity => $item->{amount}});
     }
 
-    # Character information
+    # Player information
     ########################
     
     my $pos = calcPosition($char);
     
-    $export->{character} = {
+    $export->{player} = {
         name => $char->{'name'},
         class => $jobs_lut{$char->{'jobID'}},
         hp => {current => $char->{'hp'}, total => $char->{'hp_max'}},
