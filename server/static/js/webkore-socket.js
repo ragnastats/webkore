@@ -81,7 +81,7 @@ $(document).ready(function()
             typeof ragnarok.lookup.info_types[info.type].process == "function")
         {
             ragnarok.lookup.info_types[info.type].process(info.value);
-            ragnarok.ui.populate.character();
+            ragnarok.ui.populate.player();
         }
     });
     
@@ -163,7 +163,7 @@ $(document).ready(function()
             if($('#'+character.id).length == 0)
             {
                 // TODO: Determine correct character types
-                ragnarok.map.character.add(character.id, character.name, "player", character.pos.from);
+                ragnarok.map.character.add(character.id, character.name, character.type, character.pos.from);
             }
 
             // If the character is moving
