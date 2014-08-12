@@ -43,7 +43,7 @@ $(document).ready(function()
     
     socket.on('move', function(move)
     {
-        ragnarok.character.pos = move.to;
+        ragnarok.player.pos = move.to;
         ragnarok.ui.populate.map();
 
         ragnarok.map.move(move.to);
@@ -67,8 +67,8 @@ $(document).ready(function()
     
     socket.on('map', function(map)
     {
-        ragnarok.character.map = map.map;
-        ragnarok.character.pos = map.pos;
+        ragnarok.player.map = map.map;
+        ragnarok.player.pos = map.pos;
         ragnarok.ui.populate.map();
 
         ragnarok.map.position(map.pos);
@@ -152,8 +152,7 @@ $(document).ready(function()
         ragnarok.ui.populate.chat();
     });
 
-    // TODO: Rename webkore hooks from actor to character
-    socket.on('actor', function(character)
+    socket.on('character', function(character)
     {
         // Display a character
         if(character.action == "display")
