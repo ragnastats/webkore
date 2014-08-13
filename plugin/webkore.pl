@@ -46,6 +46,7 @@ my $packetHooks = Plugins::addHooks(
 
     # Broadcasts
     ['local_broadcast', \&broadcast_handler],
+    ['system_chat', \&broadcast_handler],
     
     # Movement
     ['packet/character_moves', \&movement_handler],
@@ -76,11 +77,20 @@ my $packetHooks = Plugins::addHooks(
     ['packet/actor_display', \&character_handler],
     ['packet/actor_died_or_disappeared', \&character_handler],
 
+    # Vendor packets
+    ['packet/vender_found', \&vendor_handler],
+    ['packet/vender_lost', \&vendor_handler],
+    ['packet/vender_items_list', \&vendor_handler],
+    ['packet/buying_store_found', \&vendor_handler],
+    ['packet/buying_store_lost', \&vendor_handler],
+    ['packet/buying_store_items_list', \&vendor_handler],
+    
+    # Chat windows
+    ['packet/chat_info', \&chat_window_handler],
+    ['packet/chat_removed', \&chat_window_handler],
+
     
     # TODO:
-    # Chat windows
-    # Vendor information
-
     # NPC packets
     ['packet/npc_talk', \&default_handler],
     ['packet/npc_talk_continue', \&default_handler],
@@ -491,6 +501,76 @@ sub character_handler
         $output->{data}->{pos} = $pos;
     }
     
+    print $send to_json($output) . "\n";
+}
+
+sub vendor_handler
+{
+    return unless $send;
+    my($hook, $args) = @_;
+    
+    my $characterID = unpack("V", $args->{ID});
+    my $output = {'event' => 'vendor'};
+    
+    if($hook eq 'packet/vender_found' or $hook eq 'packet/buying_store_found')
+    {
+        $output->{data} = {
+            'id' => $characterID,
+            'action' => 'display',
+            'title' => $args->{title},
+            'type' => 'sell'
+        };
+        
+        if($hook eq 'packet/buying_store_found')
+        {
+            $output->{data}->{type} = 'buy';
+        }
+    }
+    elsif($hook eq 'packet/vender_lost' or $hook eq 'packet/buying_store_lost')
+    {
+        $output->{data} = {
+            'id' => $characterID,
+            'action' => 'remove'
+        };
+    }
+    else
+    {
+        print("==== $hook ====\n");
+        foreach my $key (@{$args->{KEYS}})
+        {
+            print("$key : $args->{$key} \n");
+        }
+        print("============================\n");
+    }
+
+    print $send to_json($output) . "\n";
+}
+
+sub chat_window_handler
+{
+    return unless $send;
+    my($hook, $args) = @_;
+    my $output = {'event' => 'chat_window'};
+    
+    if($hook eq 'packet/chat_info')
+    {
+        $output->{data} = {
+            'id' => unpack("V", $args->{ownerID}),
+            'action' => 'display',
+            'title' => $args->{title},
+            'users' => $args->{num_users},
+            'limit' => $args->{limit},
+            'public' => $args->{public}
+        };
+    }
+    else
+    {
+        $output->{data} = {
+            'id' => unpack("V", $args->{ID}),
+            'action' => 'remove'
+        };
+    }
+
     print $send to_json($output) . "\n";
 }
 
