@@ -215,6 +215,25 @@ net.createServer(function(socket)
                                             
                         io.sockets.emit('character', character);
                         break;
+
+                    case "vendor":
+                        var vendor = buffered.data;
+
+                        if(vendor.action == "display")  ragnarok.data.characters[vendor.id]['shop'] = vendor;
+                        else                            delete(ragnarok.data.characters[vendor.id]['shop']);
+
+                        io.sockets.emit('vendor', vendor);
+                        break;
+
+                    case "chat_window":
+                        var chat = buffered.data;
+
+                        if(chat.action == "display")    ragnarok.data.characters[vendor.id]['chat'] = chat;
+                        else                            delete(ragnarok.data.characters[vendor.id]['chat']);
+                        
+                        io.sockets.emit('chat_window', chat);
+                        break;
+
                         
                     default:
                         console.log('Unhandled event recieved: ' + buffered.event);
