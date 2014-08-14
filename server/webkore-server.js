@@ -219,17 +219,23 @@ net.createServer(function(socket)
                     case "vendor":
                         var vendor = buffered.data;
 
-                        if(vendor.action == "display")  ragnarok.data.characters[vendor.id]['shop'] = vendor;
-                        else                            delete(ragnarok.data.characters[vendor.id]['shop']);
-
+                        if(typeof ragnarok.data.characters[vendor.id] != "undefined")
+                        {
+                            if(vendor.action == "display")  ragnarok.data.characters[vendor.id]['shop'] = vendor;
+                            else                            delete(ragnarok.data.characters[vendor.id]['shop']);
+                        }
+                        
                         io.sockets.emit('vendor', vendor);
                         break;
 
                     case "chat_window":
                         var chat = buffered.data;
 
-                        if(chat.action == "display")    ragnarok.data.characters[vendor.id]['chat'] = chat;
-                        else                            delete(ragnarok.data.characters[vendor.id]['chat']);
+                        if(typeof ragnarok.data.characters[chat.id] != "undefined")
+                        {
+                            if(chat.action == "display")    ragnarok.data.characters[chat.id]['chat'] = chat;
+                            else                            delete(ragnarok.data.characters[chat.id]['chat']);
+                        }
                         
                         io.sockets.emit('chat_window', chat);
                         break;

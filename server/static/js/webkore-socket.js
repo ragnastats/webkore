@@ -176,4 +176,29 @@ $(document).ready(function()
             ragnarok.map.character.remove(character.id);
         }
     });
+
+    socket.on('vendor', function(vendor)
+    {
+        if(vendor.action == "display")
+        {
+            console.log(vendor.title);
+        }
+        else
+        {
+            
+        }
+    });
+
+    socket.on('chat_window', function(chat)
+    {
+        if(chat.action == "display")
+        {
+            console.log(chat.title);
+        }
+        else
+        {
+            
+        }
+    });
+
 });
