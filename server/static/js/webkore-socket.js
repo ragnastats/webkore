@@ -181,6 +181,9 @@ $(document).ready(function()
     {
         if(vendor.action == "display")
         {
+            var shop = ragnarok.template.clone('vendor-title', vendor);
+            console.log(shop);
+            $('#'+vendor.id).append(shop);
             console.log(vendor.title);
         }
         else
