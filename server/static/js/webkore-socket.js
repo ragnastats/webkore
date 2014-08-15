@@ -183,7 +183,6 @@ $(document).ready(function()
         {
             var title = ragnarok.template.clone('vendor-title', vendor);
             $('#'+vendor.id).append(title);
-            console.log(vendor.title);
         }
         else
         {
@@ -195,9 +194,13 @@ $(document).ready(function()
     {
         if(chat.action == "display")
         {
+            if(chat.public)
+                chat.type = "public";
+            else
+                chat.type = "private";
+            
             var title = ragnarok.template.clone('chat-title', chat);
             $('#'+chat.id).append(title);
-            console.log(vendor.title);
         }
         else
         {
