@@ -181,9 +181,8 @@ $(document).ready(function()
     {
         if(vendor.action == "display")
         {
-            var shop = ragnarok.template.clone('vendor-title', vendor);
-            console.log(shop);
-            $('#'+vendor.id).append(shop);
+            var title = ragnarok.template.clone('vendor-title', vendor);
+            $('#'+vendor.id).append(title);
             console.log(vendor.title);
         }
         else
@@ -196,7 +195,9 @@ $(document).ready(function()
     {
         if(chat.action == "display")
         {
-            console.log(chat.title);
+            var title = ragnarok.template.clone('chat-title', chat);
+            $('#'+chat.id).append(title);
+            console.log(vendor.title);
         }
         else
         {
