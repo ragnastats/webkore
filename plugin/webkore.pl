@@ -80,10 +80,10 @@ my $packetHooks = Plugins::addHooks(
     # Vendor packets
     ['packet/vender_found', \&vendor_handler],
     ['packet/vender_lost', \&vendor_handler],
-    ['packet/vender_items_list', \&vendor_handler],
+    ['packet_vender_store2', \&vendor_handler],
     ['packet/buying_store_found', \&vendor_handler],
     ['packet/buying_store_lost', \&vendor_handler],
-    ['packet/buying_store_items_list', \&vendor_handler],
+    ['packet_buying_store2', \&vendor_handler],
     
     # Chat windows
     ['packet/chat_info', \&chat_window_handler],
@@ -509,7 +509,21 @@ sub vendor_handler
     return unless $send;
     my($hook, $args) = @_;
     
-    my $characterID = unpack("V", $args->{ID});
+    my $characterID;
+
+    if($hook eq 'packet_vender_store2')
+    {
+        $characterID = unpack("V", $args->{venderID});
+    }
+    elsif($hook eq 'packet_buying_store2');
+    {
+        $characterID = unpack("V", $args->{buyerID});
+    }
+    else
+    {
+        $characterID = unpack("V", $args->{ID});
+    }
+    
     my $output = {'event' => 'vendor'};
     
     if($hook eq 'packet/vender_found' or $hook eq 'packet/buying_store_found')
@@ -535,14 +549,32 @@ sub vendor_handler
     }
     else
     {
-        print("==== $hook ====\n");
-        foreach my $key (@{$args->{KEYS}})
-        {
-            print("$key : $args->{$key} \n");
-        }
-        print("============================\n");
-    }
+        return unless $args->{itemList};
 
+        $output->{data} = {
+            'id' => $characterID,
+            'items' => [],
+        };
+        
+        my $index = 0;
+    
+        foreach my $item (@{$args->{itemList}})
+        {
+            $index++;
+            
+            if($item)
+            {
+                push(@{$output->{data}->{items}}, {
+                    'index' => $index,
+                    'id' => $item->{nameID},
+                    'amount' => $item->{amount},
+                    'price' => $item->{price},
+                    'type' => $item->{type}
+                });
+            }
+        }
+    }
+print(Dumper($args));
     print $send to_json($output) . "\n";
 }
 
