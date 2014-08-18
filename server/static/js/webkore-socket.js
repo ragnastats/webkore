@@ -199,11 +199,10 @@ $(document).ready(function()
             ragnarok.template.update('vendor-window', vendor);
             ragnarok.window.open('vendor-window');
             $('#vendor-window').css('height', 'auto');
-            console.log(vendor);
         }
         else
         {
-            console.log(vendor);
+            $('#'+vendor.id).find('.ragnarok-shop').remove();
         }
     });
 
@@ -216,7 +215,7 @@ $(document).ready(function()
         }
         else
         {
-            
+            $('#chat-'+chat.chat_id).remove();
         }
     });
 

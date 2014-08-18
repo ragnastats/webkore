@@ -178,6 +178,9 @@ net.createServer(function(socket)
                         ragnarok.player.map = buffered.data.map;
                         ragnarok.player.pos = buffered.data.pos;
                         io.sockets.emit('map', buffered.data);
+
+                        // Remove all stored characters when changing maps
+                        ragnarok.data.characters = [];
                         break;
                         
                     case "info":
@@ -234,6 +237,7 @@ net.createServer(function(socket)
                         if(typeof ragnarok.data.characters[chat.id] != "undefined")
                         {
                             if(chat.action == "display")    ragnarok.data.characters[chat.id]['chat'] = chat;
+                            // TODO: Track chats by their ID and actually remove it?
                             else                            delete(ragnarok.data.characters[chat.id]['chat']);
                         }
                         
