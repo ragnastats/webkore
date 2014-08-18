@@ -639,7 +639,7 @@ sub chat_window_handler
             'title' => $args->{title},
             'users' => $args->{num_users},
             'limit' => $args->{limit},
-            'public' => $args->{public}
+            'type' => ($args->{public}) ? 'public' : 'private'
         };
     }
     else
