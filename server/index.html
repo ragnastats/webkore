@@ -86,9 +86,23 @@
 
             function populate_map(data)
             {
+                console.log(data);
                 $.each(data, function(id, character)
                 {
                     ragnarok.map.character.add(character.id, character.name, character.type, character.pos.from);
+
+
+                    if(character.shop)
+                    {
+                        var title = ragnarok.template.clone('vendor-title', character.shop);
+                        $('#'+character.shop.id).append(title);
+                    }
+
+                    if(character.chat)
+                    {
+                        var title = ragnarok.template.clone('chat-title', character.chat);
+                        $('#'+character.chat.id).append(title);
+                    }
                 });
             }
         </script>

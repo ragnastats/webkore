@@ -211,11 +211,6 @@ $(document).ready(function()
     {
         if(chat.action == "display")
         {
-            if(chat.public)
-                chat.type = "public";
-            else
-                chat.type = "private";
-            
             var title = ragnarok.template.clone('chat-title', chat);
             $('#'+chat.id).append(title);
         }
