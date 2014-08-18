@@ -511,16 +511,11 @@ sub vendor_handler
     
     my $characterID;
 
-    if($hook eq 'packet_vender_store2')
-    {
-        $characterID = unpack("V", $args->{venderID});
-    }
-    elsif($hook eq 'packet_buying_store2');
-    {
-        $characterID = unpack("V", $args->{buyerID});
-    }
-    else
-    {
+    if($hook eq 'packet_vender_store2') {
+        $characterID = unpack("V", $args->{venderID}); }
+    elsif($hook eq 'packet_buying_store2') {
+        $characterID = unpack("V", $args->{buyerID}); }
+    else {
         $characterID = unpack("V", $args->{ID});
     }
     
@@ -564,17 +559,67 @@ sub vendor_handler
             
             if($item)
             {
-                push(@{$output->{data}->{items}}, {
+                # These properties will always be set
+                my $current_item = {
                     'index' => $index,
                     'id' => $item->{nameID},
                     'amount' => $item->{amount},
                     'price' => $item->{price},
-                    'type' => $item->{type}
-                });
+                    'type' => $item->{type},
+                };
+            
+                my($creator, $crumbs, $element, @cards);
+                my $type = unpack("v1", $item->{cards});
+            
+                if($type == 254)
+                {
+                    $creator = substr($item->{cards}, 4, 4);
+                }
+                elsif($type == 255)
+                {
+                    my $magic = unpack('v1', substr($item->{cards}, 2, 2));
+                    $creator = substr($item->{cards}, 4, 4);
+                    
+                    $crumbs = (($magic >> 8) / 5);
+                    $element = $magic % 10;
+                }
+                else
+                {
+                    for (my $x = 0; $x < 4; $x++)
+                    {
+                        my $cardID = unpack("v1", substr($item->{cards}, $x * 2, 2));
+                        last unless $cardID;
+                        push(@cards, $cardID);
+                    }
+                }
+            
+                # Only send properties with values
+                if($item->{upgrade}) {
+                    $current_item->{upgrade} = $item->{upgrade};
+                }
+            
+                if($creator) {
+                    $current_item->{creator} = unpack("V", $creator);
+                }
+                
+                if($crumbs) {
+                    $current_item->{crumbs} = $crumbs;
+                }
+                
+                if($element) {
+                    $current_item->{element} = $element;
+                }
+            
+                if(@cards) {
+                    $current_item->{cards} = @cards;
+                }
+            
+                # Add the current item to our output hash
+                push(@{$output->{data}->{items}}, $current_item);
             }
         }
     }
-print(Dumper($args));
+    
     print $send to_json($output) . "\n";
 }
 
