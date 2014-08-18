@@ -511,11 +511,12 @@ sub vendor_handler
     
     my $characterID;
 
-    if($hook eq 'packet_vender_store2') {
-        $characterID = unpack("V", $args->{venderID}); }
-    elsif($hook eq 'packet_buying_store2') {
-        $characterID = unpack("V", $args->{buyerID}); }
-    else {
+    if($hook eq 'packet_vender_store2' or $hook eq 'packet_buying_store2')
+    {
+        $characterID = unpack("V", $args->{venderID});
+    }
+    else
+    {
         $characterID = unpack("V", $args->{ID});
     }
     
@@ -548,6 +549,7 @@ sub vendor_handler
 
         $output->{data} = {
             'id' => $characterID,
+            'action' => 'list',
             'items' => [],
         };
         
