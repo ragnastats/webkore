@@ -635,6 +635,7 @@ sub chat_window_handler
     {
         $output->{data} = {
             'id' => unpack("V", $args->{ownerID}),
+            'chat_id' => unpack("V", $args->{ID}),
             'action' => 'display',
             'title' => $args->{title},
             'users' => $args->{num_users},
@@ -644,8 +645,9 @@ sub chat_window_handler
     }
     else
     {
+        # TODO: Save chat IDs to determine the original owner ID?
         $output->{data} = {
-            'id' => unpack("V", $args->{ID}),
+            'chat_id' => unpack("V", $args->{ID}),
             'action' => 'remove'
         };
     }
