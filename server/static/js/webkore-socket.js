@@ -184,9 +184,26 @@ $(document).ready(function()
             var title = ragnarok.template.clone('vendor-title', vendor);
             $('#'+vendor.id).append(title);
         }
+        else if(vendor.action == "list")
+        {
+            vendor.name = $('#'+vendor.id).find('.name').text();
+
+            for(var i = 0, l = vendor.items.length; i < l; i++)
+            {
+                var item_id = vendor.items[i].id;
+                var item = ragnarok.items[item_id];
+                
+                vendor.items[i].name = item.name;
+            }
+            
+            ragnarok.template.update('vendor-window', vendor);
+            ragnarok.window.open('vendor-window');
+            $('#vendor-window').css('height', 'auto');
+            console.log(vendor);
+        }
         else
         {
-            
+            console.log(vendor);
         }
     });
 

@@ -56,14 +56,17 @@
                 {
                     ragnarok.ui.root_path = '/bootstrap/';
                     ragnarok.template.template_path = '/bootstrap/templates/';
-                    
+
+                    // Load is best for windows that users will interact with and always exist in the same place
                     ragnarok.template.load('basic-info');
                     ragnarok.template.load('chat-bar');
                     ragnarok.template.load('minimap');
                     ragnarok.template.load('inventory');
                     ragnarok.template.load('item-info');
                     ragnarok.template.load('storage');
-                    ragnarok.template.load('equip');
+                    ragnarok.template.load('vendor-window');
+
+                    // Prelaod is best for small windows that are cloned/positioned automatically
                     ragnarok.template.preload('vendor-title');
                     ragnarok.template.preload('chat-title');
                     
