@@ -190,10 +190,13 @@ $(document).ready(function()
 
             for(var i = 0, l = vendor.items.length; i < l; i++)
             {
-                var item_id = vendor.items[i].id;
-                var item = ragnarok.items[item_id];
+                if(!ragnarok.items) return;
                 
-                vendor.items[i].name = item.name;
+                var item = vendor.items[i];
+                var item_db = ragnarok.items[item.id];
+
+                vendor.items[i].price = number_format(item.price);
+                vendor.items[i].name = (item_db) ? item_db.name : 'Unknown Item!';
             }
             
             ragnarok.template.update('vendor-window', vendor);

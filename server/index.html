@@ -86,11 +86,9 @@
 
             function populate_map(data)
             {
-                console.log(data);
                 $.each(data, function(id, character)
                 {
                     ragnarok.map.character.add(character.id, character.name, character.type, character.pos.from);
-
 
                     if(character.shop)
                     {
