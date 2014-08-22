@@ -76,7 +76,13 @@ my $packetHooks = Plugins::addHooks(
     # Actor packets (NPCs, Monsters, Players)
     ['packet/actor_display', \&character_handler],
     ['packet/actor_died_or_disappeared', \&character_handler],
-
+    
+    # Actor status changes
+    #['changed_status', \&status_handler],
+    #['packet/character_status', \&status_handler],
+    ['packet/actor_status_active', \&status_handler],
+    
+    
     # Vendor packets
     ['packet/vender_found', \&vendor_handler],
     ['packet/vender_lost', \&vendor_handler],
@@ -89,7 +95,6 @@ my $packetHooks = Plugins::addHooks(
     ['packet/chat_info', \&chat_window_handler],
     ['packet/chat_removed', \&chat_window_handler],
 
-    
     # TODO:
     # NPC packets
     ['packet/npc_talk', \&default_handler],
@@ -504,6 +509,31 @@ sub character_handler
     print $send to_json($output) . "\n";
 }
 
+sub status_handler
+{
+    return unless $send;
+    my($hook, $args) = @_;
+    
+    # Make sure we are the one changing status!
+    return unless($args->{ID} eq $char->{ID});
+    
+    my $output = {
+        'event' => 'status',
+        'data' => {
+            'type' => $args->{type},
+            'active' => $args->{flag}
+        }
+    };
+    
+    # Extra parameters are sent when a status is active
+    if($args->{flag})
+    {
+        $output->{data}->{timeout} = $args->{tick};
+        $output->{data}->{options} = [$args->{unknown1}, $args->{unknown2}, $args->{unknown3}];
+    }
+    print $send to_json($output) . "\n";
+}
+
 sub vendor_handler
 {
     return unless $send;
@@ -654,6 +684,7 @@ sub chat_window_handler
 
     print $send to_json($output) . "\n";
 }
+
 
 #
 # Helper Functions
