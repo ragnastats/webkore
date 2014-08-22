@@ -195,6 +195,7 @@ $(document).ready(function()
                 var item = vendor.items[i];
                 var item_db = ragnarok.items[item.id];
 
+                vendor.items[i].color = ragnarok.ui.vendor_color(item.price);
                 vendor.items[i].price = number_format(item.price);
                 vendor.items[i].name = (item_db) ? item_db.name : 'Unknown Item!';
             }
