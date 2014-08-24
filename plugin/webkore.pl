@@ -22,7 +22,6 @@ our @queue;
 our $timeout;
 our $send;
 our $recv;
-our $character;
 
 Commands::register(["wkconnect", "Connect to WebKore", \&webkore_connect]);
 Commands::register(["wkc", "Connect to WebKore", \&webkore_connect]);
@@ -152,12 +151,6 @@ sub webkore_connect
     }
 }
 
-# Connect to webkore as soon as we load the plugin
-if($config{webkore_auto})
-{
-    webkore_connect();
-}
-
 sub webkore_disconnect
 {
     shutdown($send, 2) if $send;
@@ -180,36 +173,37 @@ sub webkore_debug
 
 sub loop
 {
-    return unless $send;
-    
-    # Check the socket for incoming data
-    my @ready = $recv->can_read(0);
-        
-    foreach my $socket (@ready)
+    # If we're connected to a webkore server
+    if($send)
     {
-        my $line = $socket->getline();
-        chomp $line;
-        
-        if($line)
+        # Check the socket for incoming data
+        my @ready = $recv->can_read(0);
+            
+        foreach my $socket (@ready)
         {
-            Commands::run($line);
+            my $line = $socket->getline();
+            chomp $line;
+            
+            if($line)
+            {
+                Commands::run($line);
+            }
+        }
+    }
+    # Else, try to reconnect
+    else
+    {
+        # But only if webkore auto is true!
+        if($char and $config{webkore_auto})
+        {
+            webkore_connect();
         }
     }
 }
 
 sub network_handler
 {
-    my($hook) = @_;
-
-    if(Network::DirectConnection::getState() == Network::IN_GAME and $config{webkore_auto})
-    {
-        # Only send character the first time we get into the game
-        unless($character)
-        {
-            $character = 1;
-            webkore_connect();
-        }
-    }
+    return unless $send;
 }
 
 sub default_handler
@@ -719,54 +713,57 @@ sub chat_window_handler
 #######################
 
 sub player_export
-{
-    my $export = {"inventory" => [], "storage" => []};
-    
-    # Inventory
-    ########################
-    
-    foreach my $item (@{$char->inventory->getItems()})
+{    
+    if($char)
     {
-        push(@{$export->{inventory}}, {
-            'item' => $item->{nameID}, 
-            'quantity' => $item->{amount},
-            'equipped' => $item->{equipped},
-            'type' => {'inventory' => $item->{type}, 'equip' => $item->{type_equip}}
-        });
-    }
+        my $export = {"inventory" => [], "storage" => []};
 
-    # Storage
-    ########################
-    
-    for(my $i = 0; $i < @storageID; $i++)
-    {
-        next if ($storageID[$i] eq "");
-        my $item = $storage{$storageID[$i]};
-    
-        push(@{$export->{storage}}, {item => $item->{nameID}, quantity => $item->{amount}});
-    }
+        # Inventory
+        ########################
 
-    # Player information
-    ########################
-    
-    my $pos = calcPosition($char);
-    
-    $export->{player} = {
-        name => $char->{'name'},
-        class => $jobs_lut{$char->{'jobID'}},
-        hp => {current => $char->{'hp'}, total => $char->{'hp_max'}},
-        sp => {current => $char->{'sp'}, total => $char->{'sp_max'}},
-        level => {base => $char->{'lv'}, job => $char->{'lv_job'}},
-        exp => {base => {current => $char->{'exp'}, total => $char->{'exp_max'}},
-                job => {current => $char->{'exp_job'}, total => $char->{'exp_job_max'}}},
-        weight => {current => $char->{'weight'}, total => $char->{'weight_max'}},
-        zeny => $char->{'zeny'},
-        map => {name => $field->{baseName}, width => $field->{width}, height => $field->{height}},
-        pos => $pos,
-        look => $char->{look}->{body}
-    };
-    
-    return $export;
+        foreach my $item (@{$char->inventory->getItems()})
+        {
+            push(@{$export->{inventory}}, {
+                'item' => $item->{nameID}, 
+                'quantity' => $item->{amount},
+                'equipped' => $item->{equipped},
+                'type' => {'inventory' => $item->{type}, 'equip' => $item->{type_equip}}
+            });
+        }
+
+        # Storage
+        ########################
+        
+        for(my $i = 0; $i < @storageID; $i++)
+        {
+            next if ($storageID[$i] eq "");
+            my $item = $storage{$storageID[$i]};
+        
+            push(@{$export->{storage}}, {item => $item->{nameID}, quantity => $item->{amount}});
+        }
+
+        # Player information
+        ########################
+        
+        my $pos = calcPosition($char);
+        
+        $export->{player} = {
+            name => $char->{'name'},
+            class => $jobs_lut{$char->{'jobID'}},
+            hp => {current => $char->{'hp'}, total => $char->{'hp_max'}},
+            sp => {current => $char->{'sp'}, total => $char->{'sp_max'}},
+            level => {base => $char->{'lv'}, job => $char->{'lv_job'}},
+            exp => {base => {current => $char->{'exp'}, total => $char->{'exp_max'}},
+                    job => {current => $char->{'exp_job'}, total => $char->{'exp_job_max'}}},
+            weight => {current => $char->{'weight'}, total => $char->{'weight_max'}},
+            zeny => $char->{'zeny'},
+            map => {name => $field->{baseName}, width => $field->{width}, height => $field->{height}},
+            pos => $pos,
+            look => $char->{look}->{body}
+        };
+
+        return $export;
+    }
 }
 
 1;
