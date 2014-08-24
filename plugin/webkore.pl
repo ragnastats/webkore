@@ -22,6 +22,7 @@ our @queue;
 our $timeout;
 our $send;
 our $recv;
+our $character;
 
 Commands::register(["wkconnect", "Connect to WebKore", \&webkore_connect]);
 Commands::register(["wkc", "Connect to WebKore", \&webkore_connect]);
@@ -34,7 +35,9 @@ Plugins::register("WebKore", "OpenKore's Web Interface", \&unload);
 
 my $logHook = Log::addHook(\&log_handler);
 my $packetHooks = Plugins::addHooks(
+    # Kore internals
     ['mainLoop_post', \&loop],
+    ['Network::stateChanged', \&network_handler],
 
     # Chats
     ['packet_selfChat', \&chat_handler],
@@ -137,12 +140,22 @@ sub unload
 
 sub webkore_connect
 {
+    # Open connection to the statistics server
     my $server = ($config{webkore_server}) ? $config{webkore_server} : '127.0.0.1';
     $send = IO::Socket::INET->new(Proto => 'tcp', PeerAddr => $server, PeerPort => 1338, Reuse => 1);
     $recv = IO::Select->new($send);
     
-    # Send player export after connecting to the statistics server
-    print $send to_json({'event' => 'player', 'data' => player_export()}) . "\n";
+    # Only send character data if we're currently in game
+    if($char and Network::DirectConnection::getState() == Network::IN_GAME)
+    {
+        print $send to_json({'event' => 'player', 'data' => player_export()}) . "\n";
+    }
+}
+
+# Connect to webkore as soon as we load the plugin
+if($config{webkore_auto})
+{
+    webkore_connect();
 }
 
 sub webkore_disconnect
@@ -180,6 +193,21 @@ sub loop
         if($line)
         {
             Commands::run($line);
+        }
+    }
+}
+
+sub network_handler
+{
+    my($hook) = @_;
+
+    if(Network::DirectConnection::getState() == Network::IN_GAME and $config{webkore_auto})
+    {
+        # Only send character the first time we get into the game
+        unless($character)
+        {
+            $character = 1;
+            webkore_connect();
         }
     }
 }
