@@ -36,9 +36,9 @@ $(document).ready(function()
                           ("0" + date.getUTCSeconds()).slice(-2);
                     
         chat.timestamp = date;
-        ragnarok.data.chat.messages.push(chat);
+        ragnarok.data.chat.output.push(chat);
         
-        if(ragnarok.data.chat.messages.length > 100) ragnarok.data.chat.messages.shift();
+        if(ragnarok.data.chat.output.length > 100) ragnarok.data.chat.output.shift();
         ragnarok.ui.populate.chat();
     });
     
@@ -146,8 +146,8 @@ $(document).ready(function()
                 message: messages[i].replace(/ /g, ' ')
             };
 
-            ragnarok.data.chat.messages.push(chat);        
-            if(ragnarok.data.chat.messages.length > 100) ragnarok.data.chat.messages.shift();
+            ragnarok.data.chat.output.push(chat);        
+            if(ragnarok.data.chat.output.length > 100) ragnarok.data.chat.output.shift();
         }
         
         ragnarok.ui.populate.chat();
