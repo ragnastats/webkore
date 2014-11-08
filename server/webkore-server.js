@@ -90,6 +90,7 @@ io.sockets.on('connection', function(websocket)
         else
         {
             console.log("Anonymous: " + input.message);
+            io.sockets.emit('chat', {type: 'blue', message: input.message});
         }
     });
 });

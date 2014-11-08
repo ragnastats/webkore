@@ -6,7 +6,8 @@ var chat_colors = {
     party_to: 'orange',
     guild: 'lightgreen',
     private_from: 'yellow',
-    private_to: 'yellow'
+    private_to: 'yellow',
+    blue: 'aqua'
 };
 
 $(document).ready(function()
