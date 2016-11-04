@@ -230,14 +230,44 @@ sub log_handler
 {
     return unless $send;
     my($type, $domain, $level, $globalVerbosity, $message, $user_data, $near, $far) = @_;
-    return if $type eq "debug";
-    #print("$type, $domain, $level, $globalVerbosity, $message, $user_data, $near, $far\n");
-    
+
+    # Ignore all log messages unless webkore_generalMessage is enabled
+    unless($config{webkore_generalMessage})
+    {
+        return;
+    }
+
+    # Ignore status effects and other misc information unless webkore_verbose is enabled
+    unless($config{webkore_verbose})
+    {
+        return if $type eq "debug";
+        return if $domain =~ /chat$|presence|statuslook/;
+        return if $near =~ /minimap/;
+    }
+
+    # Ignore skill use unless webkore_battleMessage is enabled
+    unless($config{webkore_battleMessage})
+    {
+        return if $domain =~ /skill|attack|exp/;
+    }
+
+    # Ignore item messages unless webkore_items is enabled
+    unless($config{webkore_items})
+    {
+        return if $domain =~ /item|drop/;
+    }
+
+    # Output log messages when webkore_debug is enabled
+    if($config{webkore_debug})
+    {
+        print("Type: '$type', Domain: '$domain', Level: '$level', Verbosity: '$globalVerbosity', Message: '$message', User: '$user_data', Near: '$near', Far: '$far'\n");
+    }
+
     # Only send messages to WebKore if they were initiated by a console command
-    if($near =~ m/^Commands/ or $far =~ m/^Commands/)
+    if($type eq 'message' or $type eq 'error' or $near =~ m/^Commands/ or $far =~ m/^Commands/)
     {
         chomp $message;
-        
+
         print $send to_json({
             'event' => 'message',
             'data' => {
