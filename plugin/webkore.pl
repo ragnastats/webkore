@@ -241,21 +241,24 @@ sub log_handler
     unless($config{webkore_verbose})
     {
         return if $type eq "debug";
-        return if $domain =~ /chat$|presence|statuslook/;
-        return if $near =~ /minimap/;
+        return if $domain =~ /chat$|presence|statuslook/i;
+        return if $near =~ /minimap/i;
     }
 
     # Ignore skill use unless webkore_battleMessage is enabled
     unless($config{webkore_battleMessage})
     {
-        return if $domain =~ /skill|attack|exp/;
+        return if $domain =~ /skill|attack|exp|status/i;
     }
 
     # Ignore item messages unless webkore_items is enabled
     unless($config{webkore_items})
     {
-        return if $domain =~ /item|drop/;
+        return if $domain =~ /item|drop/i;
     }
+
+    # Ignore monster emotions
+    return if($domain eq "emotion" and $message =~ /Monster|Unknown/);
 
     # Output log messages when webkore_debug is enabled
     if($config{webkore_debug})
