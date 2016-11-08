@@ -241,7 +241,7 @@ sub log_handler
     unless($config{webkore_verbose})
     {
         return if $type eq "debug";
-        return if $domain =~ /chat$|presence|statuslook/i;
+        return if $domain =~ /chat$|pm|presence|statuslook/i;
         return if $near =~ /minimap/i;
     }
 
